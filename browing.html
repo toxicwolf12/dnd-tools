@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bájital Főző Rendszer + DM Menü</title>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet" />
+  <style>
+    body {
+
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background:linear-gradient(to bottom, #1a2238, #364560);;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    nav{
+        left:25px;
+      text-align: center;
+  position: fixed;
+  top: 0;
+  width: 98%;
+  background-color:#071f4a;
+  padding: 1px;
+  border-radius: 14px;
+  
+}
+
+nav ul {
+  list-style: none;
+  padding-left: 0;
+}
+nav ul li {
+  margin: 0.5rem 0;
+  display: inline;
+  padding: 20px;
+  font-weight: 900;
+  font-size:20px;
+}
+
+nav ul li a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+nav ul li a:hover {
+  text-decoration: underline;
+}
+
+    #sidebar {
+      background: #071f4a; /* Pergamen szín */
+      border-left: none; /* Ne legyen bal oldali keret */
+      border-top: 3px double #80b3ff;
+      border-bottom: 3px double #80b3ff;
+      border-right: 3px double #80b3ff;
+      border-radius: 0 12px 12px 0;
+      box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.1),
+                  4px 4px 12px rgba(0, 0, 0, 0.3);
+      padding: 10px;
+      width: 550px;
+      margin: 90px 0 30px 0; /* teljesen balra tapad */
+      font-family: 'Georgia', serif;
+      color: white;
+      position: relative;
+    }
+    #sidebar h2 {
+      margin-top: 0;
+      margin-bottom: 12px;
+      font-weight: 700;
+      color: #80b3ff;
+      user-select: none;
+    }
+    #sidebar p {
+      margin-top: 0;
+      margin-bottom: 20px;
+      font-size: 0.95em;
+      color: #ccc;
+    }
+    #main {
+      margin-top: 90px;
+      flex-grow: 1;
+      padding: 25px;
+      background: linear-gradient(to bottom, #1a2238, #364560);;
+      box-sizing: border-box;
+      border-radius: 0 0 0 12px;
+      box-shadow: -3px 0 7px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      overflow-y: auto;
+    }
+
+    /* Form a növény hozzáadáshoz */
+    form {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+    form input[type="text"] {
+      flex: 2 1 0;
+      max-width: 130px;
+      padding: 8px;
+      font-size: 1.1em;
+      border: 1.5px solid #555;
+      border-radius: 5px;
+    }
+    form input[type="number"] {
+      flex: 1 1 60px;
+      max-width: 70px;
+      padding: 8px;
+      font-size: 1.1em;
+      border: 1.5px solid #555;
+      border-radius: 5px;
+      text-align: center;
+    }
+    form button {
+      max-width: 105px;
+      padding: 9px 18px;
+      font-size: 1.1em;
+      border-radius: 5px;
+      background-color: #287bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      flex-shrink: 0;
+    }
+    form button:hover {
+      background-color: #1a5fd1;
+    }
+
+    /* Növény lista */
+    #plantsList {
+      flex-grow: 1;
+      overflow-y: auto;
+    }
+    .plant-item {
+      background: #5D3FD3;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      font-size: 1em;
+      flex-wrap: wrap;
+      color: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      user-select: none;
+    }
+
+    .plant-details.hidden{
+        display: none;
+    }
+
+    .plant-name {
+      flex: 2;
+      font-weight: 600;
+      min-width: 130px;
+      word-break: break-word;
+    }
+    .plant-value {
+      flex: 1;
+      text-align: center;
+      font-family: monospace;
+      min-width: 55px;
+    }
+    .edit-btn {
+      background: #ffa500;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      color: white;
+      font-weight: bold;
+      transition: background-color 0.3s;
+      flex-shrink: 0;
+      user-select: none;
+    }
+    .edit-btn:hover {
+      background: #cc8400;
+    }
+    .save-btn {
+      background: #28a745;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      color: white;
+      font-weight: bold;
+      transition: background-color 0.3s;
+      margin-left: 8px;
+      flex-shrink: 0;
+      user-select: none;
+    }
+    .save-btn:hover {
+      background: #1e7e34;
+    }
+    .plant-edit input[type="text"],
+    .plant-edit input[type="number"] {
+      font-size: 1em;
+      padding: 4px 6px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      text-align: center;
+      min-width: 60px;
+    }
+    .plant-edit input[type="text"] {
+      text-align: left;
+      min-width: 120px;
+      flex-grow: 2;
+    }
+
+    /* Gyártási rész */
+    #craftSection {
+      background-color:#071f4a;
+      border: 3px double #80b3ff;
+      border-radius: 15px;
+      width: 800px;
+      padding: 30px;
+      padding-top: 0;
+      color:white;
+    }
+    #craftSection h3 {
+      margin-bottom: 12px;
+      color: #80b3ff;
+      user-select: none;
+    }
+    #plantSelectList {
+      text-align: center;
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      padding: 8px;
+      border-radius: 6px;
+      background: #f9f9f9;
+      margin-bottom: 12px;
+      color:black;
+      font-size: 20px;
+      font-weight: 700;
+
+    }
+
+    #plantSelectList input[type="number"]{
+      width: 60px;
+      text-align: center;
+      font-size: 20px;
+      font-weight: 700;
+      padding:5px;
+    }
+
+
+    #plantSelectList label {
+      display: flex;
+      text-align: center;
+      justify-content: space-between;
+      padding: 6px 10px;
+      margin-top: auto;
+      margin-bottom: auto;
+      background: white;
+      border-radius: 4px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: border-color 0.2s;
+      user-select: none;
+    }
+    #plantSelectList label:hover {
+      border-color: #287bff;
+    }
+    #plantSelectList input[type="checkbox"] {
+      margin-right: 10px;
+      transform: scale(1.3);
+      cursor: pointer;
+    }
+    #baseSelect {
+      margin-bottom: 15px;
+      font-size: 1.1em;
+      padding: 8px 12px;
+      border-radius: 5px;
+      border: 1.5px solid #555;
+      width: 220px;
+      user-select: none;
+    }
+    #craftBtn {
+      padding: 12px 26px;
+      font-size: 1.3em;
+      border-radius: 6px;
+      background-color: #287bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      margin-bottom: 20px;
+      user-select: none;
+    }
+    #craftBtn:hover {
+      background-color: #1a5fd1;
+    }
+    #craftResult {
+      background:#5D3FD3;
+      padding: 15px 18px;
+      border-radius: 6px;
+      font-size: 1.3em;
+      color: white;
+      min-height: 70px;
+      white-space: pre-wrap;
+      user-select: text;
+    }
+
+    /* DM szerkesztő rész */
+    #dmMenu {
+      background-color:#071f4a;
+      border: 3px double #80b3ff;
+      border-radius: 15px;
+      width: 800px;
+      padding: 30px;
+      border-top: 2px solid #287bff;
+      padding-top: 12px;
+      color: white;
+    }
+    #dmMenu h3 {
+      margin-bottom: 12px;
+      color: #287bff;
+      user-select: none;
+    }
+    #dmPlantsList {
+      max-height: 250px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      padding: 8px;
+      border-radius: 6px;
+      background: #f9f9f9;
+      color:black;
+    }
+    .dm-plant {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+      background: white;
+      border-radius: 5px;
+      user-select: none;
+      flex-wrap: wrap;
+    }
+        .dm-plant-name {
+      flex: 2 1 130px;
+      font-weight: 600;
+      user-select: text;
+      word-break: break-word;
+    }
+    .dm-plant-input {
+      flex: 1 1 70px;
+      min-width: 60px;
+      padding: 5px 6px;
+      font-size: 1em;
+      border: 1px solid #888;
+      border-radius: 4px;
+      text-align: center;
+      user-select: text;
+    }
+
+    .potion-item {
+      background: #5D3FD3;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+      box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
+      font-family: 'Georgia', serif;
+      font-size: 16px;
+      transition: all 0.2s ease-in-out;
+    }
+
+    .potion-item:hover {
+      transform: scale(1.01);
+      box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.25);
+    }
+
+    .potion-name {
+      font-weight: bold;
+      cursor: pointer;
+      color: black;
+    }
+
+    .potion-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+      justify-content: flex-start;
+    }
+
+    .potion-actions button {
+      background-color: #80b3ff;
+      color:white;
+      padding: 4px 8px;
+      border: none;
+      border-radius: 4px;
+      font-family: 'Georgia', serif;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .potion-actions button:hover {
+      background-color: #ddd;
+    }
+
+    .potion-actions button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+
+  </style>
+</head>
+<body>
+
+<nav id="nav">
+  <ul>
+    <li><a href="clock.html">time</a>
+    <li><a href="nagy térkép.html">big map</a>
+    <li><a href="carft\index.html">crafting</a>
+    <li><a href="cooking.html">cooking</a>
+
+  </ul>
+</nav>
+
+
+  <div id="sidebar">
+    <h2>Bájital Főző</h2>
+    <p>Adj meg új növényt, majd válassz ki növényeket a főzéshez.</p>
+
+    <div id="plantFilterPanel" class="sidebar-filter">
+      <input type="text" id="plantNameSearch" placeholder="🔍 Név keresése..." />
+
+      <select id="sortPlants">
+        <option value="">(nincs rendezés)</option>
+        <option value="healing-asc">Gyógy ⬆️</option>
+        <option value="healing-desc">Gyógy ⬇️</option>
+        <option value="magic-asc">Mágia ⬆️</option>
+        <option value="magic-desc">Mágia ⬇️</option>
+        <option value="nature-asc">Természet ⬆️</option>
+        <option value="nature-desc">Természet ⬇️</option>
+        <option value="stock-asc">Készlet ⬆️</option>
+        <option value="stock-desc">Készlet ⬇️</option>
+      </select>
+    </div>
+
+    <form id="plantForm">
+      <input type="text" id="plantName" placeholder="Növény neve" required />
+      <input type="number" id="healing" placeholder="Healing" min="0" max="100" required />
+      <input type="number" id="magic" placeholder="Magic" min="0" max="100" required />
+      <input type="number" id="nature" placeholder="Nature" min="0" max="100" required />
+      <button type="submit">Új növény</button>
+    </form>
+
+    <div id="plantsList" aria-live="polite"></div>
+  </div>
+
+
+  <div id="potionSidebar" style="
+    position: fixed;
+    border-radius:30px;
+    top: 100px;
+    right: 20px;
+    width: 400px;
+    height: 700px;
+    background-color:#071f4a;
+    border: 3px double #80b3ff;
+    color: white;
+    padding: 10px;
+    box-shadow: -2px 0 5px rgba(0,0,0,0.5);
+    transform: translateX(0);
+    transition: transform 0.3s ease;
+    z-index: 1000;
+    overflow-y: auto;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+  ">
+
+    <button id="toggleSidebarBtn" style="
+      background: #80b3ff;
+      border: none;
+      color: white;
+      font-size: 24px;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      align-self: flex-start;
+      margin-bottom: 10px;
+      border-radius: 5px 0 5px 0;
+    ">×</button>
+
+    <h2 style="margin: 0 0 10px 0;">Mentett főzetek</h2>
+
+    <ul id="potionSavedList" style="list-style:none; padding:0; margin:0; flex-grow:1; overflow-y:auto;">
+      <!-- Mentett főzetek listája -->
+    </ul>
+  </div>
+
+
+  <main id="main">
+    <section id="craftSection">
+      <h3>Főzéshez válassz növényeket</h3>
+      <div id="plantSelectList" aria-label="Növény kiválasztása"><input type="number" id="number" placeholder="menyiség" min="0" max="5" required /></div>
+
+
+
+      <label for="baseSelect">Válassz alapot:</label>
+      <select id="baseSelect" aria-label="Alapválasztás">
+        <option value="víz">Vízzel</option>
+        <option value="alkohol">Alkohollal</option>
+        <option value="méz">Mézzel</option>
+      </select>
+
+      <button id="craftBtn">Főzés</button>
+        <div id="craftResult" aria-live="polite">
+          <span id="craftResultText"></span>
+          <button id="savePotionBtn" style="
+            margin-top: 10px;
+            padding: 6px 12px;
+            background: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            display: none;
+          ">💾 Mentés a gyorscraftba</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="dmMenu">
+      <div id="dmLogin">
+        <input type="password" id="dmPasswordInput" placeholder="DM jelszó">
+        <button id="dmLoginBtn">Belépés</button>
+      </div>
+
+      <!-- DM panel -->
+      <div id="dmPanel" style="display:none;">
+        <h3>DM Menü – Növényértékek szerkesztése</h3>
+        <p>Itt a DM felülírhatja a játékosok által megadott növényértékeket.</p>
+        <div id="dmPlantsList" aria-live="polite"></div>
+      </div>
+  </section>  
+  </main>
+
+  <script>
+
+
+    const plantForm = document.getElementById('plantForm');
+    const plantListDiv = document.getElementById('plantsList');
+    const plantSelectListDiv = document.getElementById('plantSelectList');
+    const craftBtn = document.getElementById('craftBtn');
+    const craftResult = document.getElementById('craftResultText');
+    const baseSelect = document.getElementById('baseSelect');
+    lastCraftedPotion = {name: null, type: null};
+    const dmPlantsList = document.getElementById('dmPlantsList');
+    const selectedPlants = {};
+    const savedPlants = localStorage.getItem('plants');
+    const plants = savedPlants ? JSON.parse(savedPlants) : [];
+
+    const savedPotionData = localStorage.getItem('savedPotions');
+    const savedPotions = savedPotionData ? JSON.parse(savedPotionData) : [];
+
+    const savedDmValues = localStorage.getItem('dmValues');
+    const dmValues = savedDmValues ? JSON.parse(savedDmValues) : {};
+
+
+    // Új növény hozzáadása
+    plantForm.addEventListener('submit', e => {
+      e.preventDefault();
+
+      const name = plantForm.plantName.value.trim();
+      const healing = Number(plantForm.healing.value);
+      const magic = Number(plantForm.magic.value);
+      const nature = Number(plantForm.nature.value);
+
+      if(!name) return alert('Adj meg egy növénynevet!');
+
+      // Ellenőrizzük, hogy van-e már ilyen növény
+      if(plants.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+        alert('Ez a növény már szerepel a listában!');
+        return;
+      }
+
+      const newPlant = { name, healing, magic, nature , stock: Math.floor((Math.random()*5)+1)};
+      plants.push(newPlant);
+      plantForm.reset();
+
+      updatePlantsDisplay();
+      updatePlantSelectList();
+      updateDmMenu();
+    });
+
+    function savePlants() {
+    localStorage.setItem('plants', JSON.stringify(plants));
+    }
+
+
+function updatePlantsDisplay() {
+  
+  plantListDiv.innerHTML = '';
+  if (plants.length === 0) {
+    plantListDiv.textContent = 'Nincsenek növények.';
+    return;
+  }
+
+  const nameSearch = document.getElementById('plantNameSearch')?.value.toLowerCase() || '';
+  const sortValue = document.getElementById('sortPlants')?.value || '';
+
+  // Szűrés név alapján
+  let filtered = plants.filter(p =>
+    p.name.toLowerCase().includes(nameSearch)
+  );
+
+  // Rendezzük, ha van kiválasztott mód
+  if (sortValue) {
+    const [key, direction] = sortValue.split('-');
+    filtered.sort((a, b) => {
+      return direction === 'asc' ? a[key] - b[key] : b[key] - a[key];
+    });
+  }
+
+  filtered.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.classList.add('plant-item');
+
+    // Összefoglaló sáv
+    const summary = document.createElement('div');
+    summary.classList.add('plant-summary');
+    summary.innerHTML = `
+      <span><strong>${p.name}</strong> – <em>Készlet: ${p.stock}</em></span>
+      <button class="edit-btn">✏️</button>
+      <button class="delete-btn">🗑️</button>
+    `;
+
+    const details = document.createElement('div');
+    details.classList.add('plant-details', 'hidden');
+    details.innerHTML = `
+      <div>Gyógy: ${p.healing}, Mágia: ${p.magic}, Természet: ${p.nature}</div>
+      <label>Mennyiség: <input type="number" class="qty-input" id="qty${i}" min="1" value="1"></label>
+      <button class="add-btn" data-index="${i}">➕ Hozzáad</button>
+    `;
+
+    summary.addEventListener('click', (e) => {
+      if (!e.target.classList.contains('edit-btn') && !e.target.classList.contains('delete-btn')) {
+        details.classList.toggle('hidden');
+      }
+
+    });
+
+    div.appendChild(summary);
+    div.appendChild(details);
+    plantListDiv.appendChild(div);
+
+    // Edit gomb
+    const editBtn = summary.querySelector('.edit-btn');
+    editBtn.addEventListener('click', () => {
+      div.innerHTML = `
+        <input type="text" class="plant-edit-name" value="${p.name}" />
+        <input type="number" class="plant-edit-val" data-type="healing" value="${p.healing}" min="0" max="100" />
+        <input type="number" class="plant-edit-val" data-type="magic" value="${p.magic}" min="0" max="100" />
+        <input type="number" class="plant-edit-val" data-type="nature" value="${p.nature}" min="0" max="100" />
+        <input type="number" class="plant-edit-val" data-type="stock" value="${p.stock}" min="0" />
+        <button class="save-btn">Mentés</button>
+      `;
+
+      const saveBtn = div.querySelector('.save-btn');
+      saveBtn.addEventListener('click', () => {
+        const newName = div.querySelector('.plant-edit-name').value.trim();
+        const newHealing = Number(div.querySelector('[data-type="healing"]').value);
+        const newMagic = Number(div.querySelector('[data-type="magic"]').value);
+        const newNature = Number(div.querySelector('[data-type="nature"]').value);
+        const newStock = Number(div.querySelector('[data-type="stock"]').value);
+
+        if (!newName) return alert('A név nem lehet üres.');
+        if (plants.some((plant, idx) => idx !== i && plant.name.toLowerCase() === newName.toLowerCase())) {
+          alert('Ez a növény már létezik!');
+          return;
+        }
+
+        plants[i] = { name: newName, healing: newHealing, magic: newMagic, nature: newNature, stock: newStock };
+        updatePlantsDisplay();
+        updatePlantSelectList();
+        updateDmMenu();
+      });
+    });
+
+    // Törlés gomb
+    const deleteBtn = summary.querySelector('.delete-btn');
+    deleteBtn.addEventListener('click', () => {
+      plants.splice(i, 1);
+      updatePlantsDisplay();
+      updatePlantSelectList();
+      updateDmMenu();
+    });
+  });
+
+  savePlants();
+}
+
+
+
+
+
+
+
+
+
+
+document.getElementById('plantNameSearch').addEventListener('input', updatePlantsDisplay);
+document.getElementById('sortPlants').addEventListener('change', updatePlantsDisplay);
+
+
+
+
+    document.addEventListener('click', function (e) {
+      if (e.target.classList.contains('add-btn')) {
+        const i = e.target.dataset.index;
+        const qtyInput = document.getElementById(`qty${i}`);
+        const qty = parseInt(qtyInput.value) || 1;
+        const plantName = plants[i].name;
+
+        if (selectedPlants[plantName]) {
+          selectedPlants[plantName] += qty;
+        } else {
+          selectedPlants[plantName] = qty;
+        }
+
+        updatePlantSelectList();
+      }
+    });
+
+
+
+    // Frissíti a növényválasztó checkbox listát a főzéshez
+    function updatePlantSelectList() {
+      plantSelectListDiv.innerHTML = '';
+
+      const entries = Object.entries(selectedPlants);
+
+      if (entries.length === 0) {
+        plantSelectListDiv.textContent = 'Nincs kijelölt növény.';
+        return;
+      }
+
+      entries.forEach(([name, qty]) => {
+        const wrapper = document.createElement('div');
+        wrapper.classList.add('selected-plant-item');
+
+        const label = document.createElement('span');
+        label.textContent = `${name}: ${qty} db`;
+
+        const minusBtn = document.createElement('button');
+        minusBtn.textContent = '➖';
+        minusBtn.classList.add('remove-btn');
+        minusBtn.addEventListener('click', () => {
+          if (selectedPlants[name] > 1) {
+            selectedPlants[name]--;
+          } else {
+            delete selectedPlants[name];
+          }
+          updatePlantSelectList();
+        });
+
+        wrapper.appendChild(label);
+        wrapper.appendChild(minusBtn);
+        plantSelectListDiv.appendChild(wrapper);
+      });
+    }
+
+
+
+
+    // Frissíti a DM menüt, ahol szerkeszthetők az értékek
+    function updateDmMenu() {
+      dmPlantsList.innerHTML = '';
+      if(plants.length === 0) {
+        dmPlantsList.textContent = 'Nincsenek növények a szerkesztéshez.';
+        return;
+      }
+
+      plants.forEach((p, i) => {
+        const dmPlant = document.createElement('div');
+        dmPlant.classList.add('dm-plant');
+
+        // Ha van DM érték, használjuk, különben játékos érték
+        const dmVal = dmValues[p.name] || { healing: p.healing, magic: p.magic, nature: p.nature };
+
+        dmPlant.innerHTML = `
+          <div class="dm-plant-name">${p.name}</div>
+          <input type="number" min="0" max="100" class="dm-plant-input" data-type="healing" data-name="${p.name}" value="${dmVal.healing}" aria-label="Healing érték ${p.name} növényhez" />
+          <input type="number" min="0" max="100" class="dm-plant-input" data-type="magic" data-name="${p.name}" value="${dmVal.magic}" aria-label="Magic érték ${p.name} növényhez" />
+          <input type="number" min="0" max="100" class="dm-plant-input" data-type="nature" data-name="${p.name}" value="${dmVal.nature}" aria-label="Nature érték ${p.name} növényhez" />
+        `;
+
+        dmPlantsList.appendChild(dmPlant);
+      });
+
+      // Eseménykezelő minden inputhoz, frissíti a dmValues objektumot
+      const dmInputs = dmPlantsList.querySelectorAll('.dm-plant-input');
+      dmInputs.forEach(input => {
+        input.oninput = () => {
+          const plantName = input.dataset.name;
+          const type = input.dataset.type;
+          let val = parseInt(input.value);
+          if (isNaN(val) || val < 0) val = 0;
+          if (val > 100) val = 100;
+          input.value = val; // korlátozás miatt
+
+          if(!dmValues[plantName]) dmValues[plantName] = { healing: 0, magic: 0, nature: 0 };
+          dmValues[plantName][type] = val;
+        };
+      });
+
+      saveDmValues();
+    }
+
+
+
+
+
+
+
+    
+    // Főzés logika
+craftBtn.addEventListener('click', () => {
+  saveCount = 0;
+  const selected = Object.entries(selectedPlants).map(([name, qty]) => ({ name, qty }));
+
+  // Ellenőrizzük, hogy van-e elég készlet
+  for (let item of selected) {
+    const plant = plants.find(p => p.name === item.name);
+    if (!plant) {
+      alert(`Hiba: ${item.name} nem található a növények között.`);
+      return;
+    }
+    if (item.qty > plant.stock) {
+      alert(`Nincs elég ${plant.name} a készletben! (${plant.stock} van, de ${item.qty} kellene)`);
+      return;
+    }
+  }
+
+  // Ellenőrizzük, hogy legalább 3 növényt választottunk-e
+  const totalQty = selected.reduce((sum, item) => sum + item.qty, 0);
+  if (totalQty < 3) {
+    alert('Válassz ki legalább 3 növényt a főzéshez!');
+    return;
+  }
+
+  // 🔍 Ellenőrzés: készült-e már ilyen kombináció?
+  const sortedIngredients = selected
+    .map(item => ({ name: item.name, qty: item.qty }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  
+  const matchingPotion = savedPotions.find(potion => {
+    if (!Array.isArray(potion.ingredients)) return false;
+    if (potion.ingredients.length !== sortedIngredients.length) return false;
+
+    const sortedSaved = potion.ingredients
+      .map(i => ({ name: i.name, qty: i.qty }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    return sortedSaved.every((ing, idx) =>
+      ing.name === sortedIngredients[idx].name &&
+      ing.qty === sortedIngredients[idx].qty
+    );
+  });
+
+  if (matchingPotion) {
+    // Ha már létezett, csak ugyanazt lehet újra craftolni
+    for (let item of selected) {
+      const plant = plants.find(p => p.name === item.name);
+      plant.stock -= item.qty;
+    }
+
+    updatePlantsDisplay();
+    savePlants();
+
+    craftResult.textContent = `Készült bájital: ${matchingPotion.name} (újrafőzve)`;
+    lastCraftedPotion = matchingPotion;
+
+    document.getElementById('savePotionBtn').style.display = 'inline-block';
+    return;
+  }
+
+  // Hatások számítása
+  let totalHealing = 0;
+  let totalMagic = 0;
+  let totalNature = 0;
+
+  for (let item of selected) {
+    console.log("új")
+
+
+
+    const plant = plants.find(p => p.name === item.name);
+    const values = dmValues[plant.name] || plant;
+
+    const randHeal = values.healing * (0.8 + Math.random() * 0.4);
+    const randMagic = values.magic * (0.8 + Math.random() * 0.4);
+    const randNature = values.nature * (0.8 + Math.random() * 0.4);
+
+    plant.stock -= item.qty;
+    totalHealing += randHeal * item.qty;
+    totalMagic += randMagic * item.qty;
+    totalNature += randNature * item.qty;
+
+  }
+
+  updatePlantsDisplay();
+  savePlants();
+
+  // Alap módosító
+  const base = baseSelect.value;
+  const baseModifier = base === 'víz' ? 1 : base === 'alkohol' ? 1.5 : 1.2;
+
+  // Végeredmény
+  const healingResult = Math.round(totalHealing * baseModifier);
+  const magicResult = Math.round(totalMagic * baseModifier);
+  const natureResult = Math.round(totalNature * baseModifier);
+
+      // ---- adathalmazok ----
+
+
+      const whimsyPotions = [
+        "Laughing Elixir",
+        "Rainbow Mist Draught",
+        "Featherlight Tonic",
+        "Giggling Serum",
+        "Chameleon Brew",
+        "Bouncing Bubbles Potion",
+        "Glow-in-the-Dark Tincture",
+        "Talking Animal Elixir",
+        "Fog of Dreams Mixture",
+        "Confetti Storm Vial",
+        "Polymorph Puff",
+        "Upside-Down Potion",
+        "Inverted Colors Elixir",
+        "Floating Shoes Tonic",
+        "Spontaneous Song Brew",
+        "Reverse Speak Syrup",
+        "Slippery Soap Draft",
+        "Magical Whoopee Tonic",
+        "Random Accent Potion",
+        "Sneezing Powder Vial",
+        "Sudden Doodle Elixir",
+        "Balloon Voice Potion",
+        "Phantom Friend Tonic",
+        "Dancing Shadow Brew",
+        "Invisible Hat Potion",
+        "Echo Tonic",
+        "Curse of Tickles Draft",
+        "Silent Noise Vial",
+        "Reverse Gravity Tincture",
+        "Chicken Cluck Elixir",
+        "Illusory Mustache Potion",
+        "Paint-Sneeze Tonic",
+        "Jelly Legs Brew",
+        "Strobe Sparkle Mixture",
+        "Flickering Glow Vial",
+        "Popcorn Dust Elixir",
+        "Wobble Walk Potion",
+        "Daydream Mist Draft",
+        "Lollipop Breath Brew",
+        "Sound Swap Potion",
+        "Cartoon Logic Tonic",
+        "Invisible Socks Vial",
+        "Magnetic Hug Elixir",
+        "Bubble Beard Draft",
+        "Snail Speed Potion",
+        "Fuzzy Thoughts Tonic",
+        "Mimicry Mist Vial",
+        "Burp of Fire Elixir",
+        "Marshmallow Cloud Brew",
+        "Silly Walk Serum",
+        "Involuntary Tapdance Potion",
+        "Confused Compass Draft",
+        "Yodeling Yawn Elixir",
+        "Sticky Hands Brew",
+        "Banana Peel Tonic",
+        "Infinite Echo Mist",
+        "Backwards Blink Potion",
+        "Marble Mouth Mixture",
+        "Jester’s Giggle Juice",
+        "Phantom Itch Elixir",
+        "Ceiling Walker Brew",
+        "Random Door Generator",
+        "Talking Backpack Potion",
+        "Shimmering Soap Draft",
+        "Whistle Wind Tonic",
+        "Loony Lullaby Vial",
+        "Sprouting Hair Elixir",
+        "Color Pulse Potion",
+        "Toonify Serum",
+        "Drifting Balloon Mist",
+        "Slime Squirt Brew",
+        "Repeating Laugh Draft",
+        "Tiny Voice Tonic",
+        "Goose Honk Elixir",
+        "Mood Ring Mist",
+        "Jumpstart Jelly Potion",
+        "Scribble Skin Serum",
+        "Parrot Repeat Brew",
+        "Eyes on Back Vial",
+        "Magical Yawn Elixir",
+        "Gnome's Chuckle Draft",
+        "Rubber Skin Potion",
+        "Flat Flavor Tonic",
+        "Exploding Cupcake Brew",
+        "Smoky Giggle Elixir",
+        "Dizzy Dance Draft",
+        "Wacky Wig Vial",
+        "Fluff Cloud Mist",
+        "Tickleproof Potion",
+        "Echoing Footsteps Brew",
+        "Popcorn Breath Serum",
+        "Stretchy Smile Elixir",
+        "Surprise Sneeze Mist",
+        "Reverse Eyesight Potion",
+        "Musical Steps Draft",
+        "Loud Silence Vial",
+        "Zebra Stripes Elixir",
+        "Doodle Explosion Potion",
+        "Inflatable Legs Tonic",
+        "No Reflection Brew",
+        "Jelly Bounce Mist",
+        "Forked Tongue Elixir"
+      ];
+
+      const utilityPotions = [
+        "Night Vision Elixir",
+        "Water Breathing Brew",
+        "Climbing Grip Potion",
+        "Feather Fall Serum",
+        "Comprehend Languages Tonic",
+        "Endless Canteen Draught",
+        "Unseen Servant Mixture",
+        "Light in a Bottle",
+        "Silent Step Elixir",
+        "Muffle Sound Brew",
+        "Fire Resistance Draft",
+        "Cold Resistance Tonic",
+        "Speak with Animals Elixir",
+        "Anti-Venom Serum",
+        "Breath of Fresh Air Potion",
+        "Frost-Free Mixture",
+        "Endless Ink Vial",
+        "Glow Essence",
+        "Shadow Cloak Potion",
+        "Sticky Fingers Elixir",
+        "Slick Escape Brew",
+        "Perfect Memory Tonic",
+        "Iron Stomach Potion",
+        "Deep Sleep Elixir",
+        "Sudden Awake Brew",
+        "Sustenance Draft",
+        "Truth Tongue Potion",
+        "Grease Remover Elixir",
+        "Clean Skin Serum",
+        "Flame Finder Brew",
+        "Fog Cutter Mixture",
+        "Keen Ears Tonic",
+        "Wall Listen Potion",
+        "Map Recall Serum",
+        "Mind Sharpen Elixir",
+        "Wind Whisper Draft",
+        "Safe Step Brew",
+        "Trap Spotter Tonic",
+        "Weather Ward Potion",
+        "Invisible Ink Revealer",
+        "Time Reminder Elixir",
+        "Saltwater Purifier Brew",
+        "Fresh Food Preserver",
+        "Insect Repellent Potion",
+        "Shadow Marker Serum",
+        "Magic Detection Elixir",
+        "Slick Grip Tonic",
+        "Rope Hardener Draft",
+        "Torch Spark Brew",
+        "Echo Locator Potion",
+        "Lock Whisper Elixir",
+        "Safe Fall Gel",
+        "Stain Remover Draught",
+        "Magic Mute Potion",
+        "Rope Stiffener Elixir",
+        "Unbreakable Thread Serum",
+        "Dust Cleanse Draft",
+        "No-Fog Lens Tonic",
+        "Paper Hardener Brew",
+        "Lightstep Elixir",
+        "Slippery Oil Potion",
+        "Rust Stopper Serum",
+        "Shatterproof Flask Draft",
+        "Ink Restorer Elixir",
+        "Flickering Light Brew",
+        "Windproof Cloak Mixture",
+        "Weightless Pack Potion",
+        "Knot Unbinder Serum",
+        "Glow Dust Elixir",
+        "Compass Sync Brew",
+        "Ink Freeze Potion",
+        "Scroll Saver Tonic",
+        "Dry Feet Elixir",
+        "Sticky Glue Serum",
+        "Clothing Mender Potion",
+        "No-Scent Brew",
+        "Waterproofing Tonic",
+        "Mirror Polish Elixir",
+        "Silent Zipper Draft",
+        "Insta-Dry Potion",
+        "Feather Cleaner Elixir",
+        "Fog Lantern Serum",
+        "Pocket Warmer Potion",
+        "Shiver Stop Draft",
+        "Chill Touch Brew",
+        "Lantern Dimmer Elixir",
+        "Trap Trigger Serum",
+        "Bark Whisper Potion",
+        "Coin Magnet Elixir",
+        "Echo Mute Brew",
+        "Language Rehearser Potion",
+        "Echo Storage Draft",
+        "Soft Sole Elixir",
+        "Quick Sort Serum",
+        "Heat Saver Potion",
+        "Bone Silencer Tonic",
+        "Parchment Fixer Elixir",
+        "Unseen Cloak Serum",
+        "Reflected Path Brew",
+        "Cloud Tracker Potion"
+      ];
+
+      const combatPotions = [
+        "Strength Surge",
+        "Berserker's Fury",
+        "Iron Skin Elixir",
+        "Eagle Eye Brew",
+        "Battle Focus Tonic",
+        "Quick Reflex Draught",
+        "Poison Resistance Potion",
+        "Fire Breath Serum",
+        "Stone Fist Elixir",
+        "Thunder Strike Brew",
+        "Healing Burst",
+        "Adrenaline Rush",
+        "Shadow Step Potion",
+        "Blade Dance Elixir",
+        "Warrior's Endurance",
+        "Invigorate Brew",
+        "Magic Shield Tonic",
+        "Frost Armor Draught",
+        "Lightning Speed Potion",
+        "Bloodlust Elixir",
+        "Titan's Grip",
+        "Poison Touch Serum",
+        "Dragon's Roar Brew",
+        "Flame Ward Potion",
+        "Energy Spike Elixir",
+        "Viper Strike Brew",
+        "Guardian's Blessing",
+        "Iron Will Tonic",
+        "Rampage Potion",
+        "Chilling Grasp Elixir",
+        "War Cry Brew",
+        "Fortitude Draught",
+        "Venom Resist Potion",
+        "Battle Cry Elixir",
+        "Fireball Brew",
+        "Quick Shot Tonic",
+        "Stone Skin Draught",
+        "Wind Slash Potion",
+        "Blood Bond Elixir",
+        "Blazing Speed Brew",
+        "Defender's Guard",
+        "Poison Cloud Potion",
+        "Swift Kick Elixir",
+        "Magic Resistance Tonic",
+        "Critical Strike Brew",
+        "Shield Bash Potion",
+        "Berserk Charge Elixir",
+        "Armor Pierce Brew",
+        "Healing Wave Potion",
+        "Steel Resolve Elixir",
+        "Blinding Flash Brew",
+        "Rampant Growth Potion",
+        "Feral Strength Elixir",
+        "Lightning Reflex Brew",
+        "Firestorm Potion",
+        "Stone Throw Elixir",
+        "Toxic Spray Brew",
+        "Wind Barrier Potion",
+        "Battle Hardened Elixir",
+        "Shadow Veil Brew",
+        "Flame Lash Potion",
+        "Mighty Roar Elixir",
+        "Poison Fang Brew",
+        "Ironclad Defense Potion",
+        "Energy Burst Elixir",
+        "Venom Spike Brew",
+        "Warrior's Wrath Potion",
+        "Thunderclap Elixir",
+        "Frozen Touch Brew",
+        "Swift Blade Potion",
+        "Molten Core Elixir",
+        "Frostbite Brew",
+        "Lightning Strike Potion",
+        "Blood Frenzy Elixir",
+        "Stone Guard Brew",
+        "Arcane Shield Potion",
+        "Shadow Slash Elixir",
+        "Flame Shield Brew",
+        "Battle Focus Potion",
+        "Poisoned Blade Elixir",
+        "Iron Fist Brew",
+        "Healing Mist Potion",
+        "Thunder Rush Elixir",
+        "Viper's Bite Brew",
+        "Warrior's Spirit Potion",
+        "Molten Fists Elixir",
+        "Frost Guard Brew",
+        "Blazing Arrow Potion",
+        "Stone Wall Elixir",
+        "Lightning Charge Brew",
+        "Blood Pact Potion",
+        "Shadow Step Elixir",
+        "Fire Strike Brew",
+        "Ironhide Potion",
+        "Venomous Strike Elixir",
+        "War Cry Brew",
+        "Healing Surge Potion",
+        "Thunder Blade Elixir",
+        "Wind Fury Brew",
+        "Stone Breaker Potion",
+        "Frost Lance Elixir",
+        "Flame Burst Brew",
+        "Battle Roar Potion",
+        "Poison Cloud Elixir",
+        "Ironclad Brew"
+      ];
+
+
+
+
+
+
+      const potionStats = {
+        whimsy: healingResult,
+        utility: magicResult,
+        combat: natureResult
+      };
+
+
+
+
+      const finalpotion = selectPlantForCraft(potionStats,whimsyPotions, utilityPotions, combatPotions )
+      craftResult.textContent = `Készült bájital:${finalpotion.name}`;
+      lastCraftedPotion = {
+        name: finalpotion.name,
+        type: finalpotion.type,
+        ingredients: Object.entries(selectedPlants).map(([name, qty]) => ({
+          name,
+          qty
+        }))
+      };
+
+
+      
+      document.getElementById('savePotionBtn').style.display = 'inline-block';
+    });
+
+
+
+    function selectPlantForCraft(potionStats,whimsyPotions, utilityPotions, combatPotions ) {
+             // Megkeressük a legnagyobb értéket
+            const maxCount = Math.max(potionStats.whimsy, potionStats.utility, potionStats.combat);
+
+            // Eldöntjük, hogy melyik típusból jön a random potion
+            let selectedType;
+            if (potionStats.whimsy === maxCount) {
+              selectedType = 'whimsy';
+            } else if (potionStats.utility === maxCount) {
+              selectedType = 'utility';
+            } else {
+              selectedType = 'combat';
+            }
+
+            // Kiválasztunk véletlenszerűen egy bájitalt az adott típusból
+            let chosenPotion;
+            switch (selectedType) {
+              case 'whimsy':
+                chosenPotion = whimsyPotions[Math.floor(Math.random() * whimsyPotions.length)];
+                break;
+              case 'utility':
+                chosenPotion = utilityPotions[Math.floor(Math.random() * utilityPotions.length)];
+                break;
+              case 'combat':
+                chosenPotion = combatPotions[Math.floor(Math.random() * combatPotions.length)];
+                break;
+            }
+
+            return { name: chosenPotion, type: selectedType };
+    }
+
+      function savePotion(potion) {
+        const exists = savedPotions.find(p => p.name === potion.name && p.type === potion.type);
+        if (!exists) {
+          savedPotions.push({ ...potion, count: 1 });
+          console.log(`Mentve: ${potion.name} (${potion.type})`);
+        } else {
+          console.log(`Már mentve van: ${potion.name}`);
+        }
+      }
+
+
+
+
+    // --- side bar ---
+  const potionSidebar = document.getElementById('potionSidebar');
+  const toggleBtn = document.getElementById('toggleSidebarBtn');
+  const potionSavedList = document.getElementById('potionSavedList');
+
+
+function renderPotionList() {
+  const listContainer = document.getElementById('potionSavedList');
+  listContainer.innerHTML = '';
+
+  savedPotions.forEach((potion, index) => {
+    const container = document.createElement('div');
+    container.className = 'potion-item';
+
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'potion-name';
+    nameDiv.textContent = `${potion.name} (${potion.count} db)`;
+
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'potion-actions';
+    actionsDiv.style.display = 'none';
+
+    const useBtn = document.createElement('button');
+    useBtn.textContent = 'Használ';
+    useBtn.disabled = potion.count <= 0;
+    useBtn.addEventListener('click', () => {
+      if (potion.count > 0) {
+        potion.count--;
+        renderPotionList();
+        
+      }
+    });
+
+    const addBtn = document.createElement('button');
+    addBtn.textContent = '+';
+    addBtn.addEventListener('click', () => {
+      // Ellenőrizzük, hogy van-e elég hozzávaló
+      if (potion.ingredients) {
+        for (const ing of potion.ingredients) {
+          const plant = plants.find(p => p.name === ing.name);
+          if (!plant || plant.stock < ing.qty) {
+            alert(`Nincs elég ${ing.name} a készletben!`);
+            return;
+          }
+        }
+
+        // Levonás
+        for (const ing of potion.ingredients) {
+          const plant = plants.find(p => p.name === ing.name);
+          plant.stock -= ing.qty;
+        }
+        updatePlantsDisplay();
+        updateDmMenu?.(); // ha van ilyen függvény
+      }
+
+      potion.count++;
+      renderPotionList();
+      
+    });
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = '🗑️';
+    deleteBtn.disabled = potion.count > 0;
+    deleteBtn.addEventListener('click', () => {
+      if (potion.count === 0) {
+        savedPotions.splice(index, 1);
+        renderPotionList();
+        
+      }
+    });
+
+    actionsDiv.appendChild(useBtn);
+    actionsDiv.appendChild(addBtn);
+    actionsDiv.appendChild(deleteBtn);
+
+    nameDiv.addEventListener('click', () => {
+      actionsDiv.style.display = actionsDiv.style.display === 'none' ? 'flex' : 'none';
+    });
+
+    container.appendChild(nameDiv);
+    container.appendChild(actionsDiv);
+    listContainer.appendChild(container);
+  });
+  savePotions();
+}
+
+
+
+  let isOpen = true;
+
+  toggleBtn.addEventListener('click', () => {
+    if (isOpen) {
+      potionSidebar.style.transform = 'translateX(380px)';
+      toggleBtn.textContent = '☰'; // ikon a megnyitáshoz
+    } else {
+      potionSidebar.style.transform = 'translateX(0)';
+      toggleBtn.textContent = '×'; // ikon a becsukáshoz
+    }
+    isOpen = !isOpen;
+  });
+
+
+
+let saveCount = 0;            // Aktuális főzet mentési számlálója
+const maxSavesPerCraft = 3;   // Max. mentés engedélyezett
+
+document.getElementById('savePotionBtn').addEventListener('click', () => {
+  if (!lastCraftedPotion) {
+    alert('Előbb készíts bájitalt!');
+    return;
+  }
+
+  if (saveCount >= maxSavesPerCraft) {
+    alert(`Ezt a főzetet már ${maxSavesPerCraft} alkalommal mentetted! Készíts új bájitalt.`);
+    return;
+  }
+
+  const { name: craftedPotionName, type: craftedPotionType, ingredients } = lastCraftedPotion;
+
+  const existing = savedPotions.find(p => p.name === craftedPotionName && p.type === craftedPotionType);
+  if (existing) {
+    existing.count = (existing.count || 1) + 1;
+  } else {
+    savedPotions.push({
+      name: craftedPotionName,
+      type: craftedPotionType,
+      count: 1,
+      ingredients: ingredients // 👈 EZ HIÁNYZOTT
+    });
+  }
+
+  saveCount++;
+  renderPotionList();
+  
+});
+
+
+
+
+function findMatchingRecipe(selectedIngredients) {
+  // Szabványosítjuk a formátumot, hogy összehasonlítható legyen
+  const norm = (list) => list
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(i => `${i.name}:${i.qty}`)
+    .join('|');
+
+  const selectedKey = norm(selectedIngredients);
+
+  return potionRecipes.find(r => norm(r.ingredients) === selectedKey);
+}
+
+function savePlants() {
+  localStorage.setItem('plants', JSON.stringify(plants));
+}
+
+function savePotions() {
+  localStorage.setItem('savedPotions', JSON.stringify(savedPotions));
+}
+
+function saveDmValues() {
+  localStorage.setItem('dmValues', JSON.stringify(dmValues));
+}
+
+
+
+
+const correctDmPassword = "dm1234"; // <- Ezt módosítsd igény szerint!
+
+document.getElementById('dmLoginBtn').addEventListener('click', () => {
+  const inputPassword = document.getElementById('dmPasswordInput').value;
+  if (inputPassword === correctDmPassword) {
+    document.getElementById('dmLogin').style.display = 'none';
+    document.getElementById('dmPanel').style.display = 'block';
+  } else {
+    alert('Hibás jelszó!');
+  }
+});
+
+
+
+
+
+// 
+
+    // Inicializálás
+    updatePlantsDisplay();
+    updatePlantSelectList();
+    renderPotionList();
+    updateDmMenu();
+  </script>
+</body>
+</html>
+

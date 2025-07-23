@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style-clock.css">
+<title>D&D Világidő kezelő</title>
+
+</head>
+<body>
+
+<!-- nav bar --> 
+
+<nav id="nav">
+  <ul>
+    <li><a href="nagy térkép.html">big map</a>
+    <li><a href="carft\index.html">crafting</a>
+    <li><a href="cooking.html">cooking</a>
+    <li><a href="browing.html">brewing</a></li>
+    <button class="dmprof" onclick="dmpoff()">profile</button>
+  </ul>
+</nav>
+
+<h1>D&D Világidő kezelő</h1>
+
+<!-- to do list --> 
+<div class="to-do">
+  <h2>To-Do Lista</h2>
+
+  <input type="text" id="todoInput" placeholder="Írd be a teendőt..." />
+  <button id="addBtn" onclick="addTodo()">Hozzáadás</button>
+
+  <ul id="todoList"></ul>
+</div>
+
+
+<div id="worldTime">Betöltés...</div>
+<canvas id="dayCycleCanvas" width="240" height="240" aria-label="Napszak és idő jelző"></canvas>
+<div id="weatherDisplay">Betöltés...</div>
+<div id="eventDisplay" style="margin-top: 10px; padding: 10px; color: rgb(255, 255, 221)">Napi esemény: ...</div>
+<div id="magic-status" style="color: white;padding:12px;font-weight: bold;font-family: Arial,sans-serif;">Mágiaszint: <span id="magic-level-text">Normál</span></div>
+
+
+<!-- Pihenés gombok -->
+<div style="margin-top: 20px;">
+  <button id="shortRestBtn" title="Rövid pihenés (1 óra)">Rövid pihenés (1 óra)</button>
+  <button id="longRestBtn" title="Hosszú pihenés (8 óra)">Hosszú pihenés (8 óra)</button>
+</div>
+
+<!-- DM belépő -->
+<div id="dmLoginSection" style="display: 'none';">
+  <h3>DM belépés</h3>
+  <input type="password" id="dmPasswordInput" placeholder="Írd be a jelszót" autocomplete="off" />
+  <button id="dmLoginBtn">Belépés</button>
+  <div id="dmLoginError"></div>
+</div>
+
+<!-- DM vezérlőpanel -->
+<div id="dmPanel" aria-live="polite">
+  <h3>DM vezérlőpanel</h3>
+
+  <label for="timeSetInput">Világidő beállítása</label>
+  <input type="datetime-local" id="timeSetInput" step="60" />
+
+  <label for="timeSpeedInput">Idősebesség (1x alap, max 120x)</label>
+  <input type="number" id="timeSpeedInput" min="0" max="120" step="0.1" value="1" />
+
+  <label for="weatherSelect">Időjárás</label>
+  <select id="weatherSelect">
+    <option value="auto">Automatikus</option>
+    <option value="clear">Tiszta</option>
+    <option value="cloudy">Felhős</option>
+    <option value="rain">Eső</option>
+    <option value="storm">Vihar</option>
+    <option value="snow">Hó</option>
+  </select>
+
+  <label for="magicSelect">Mágia állapota</label>
+  <select id="magicSelect">
+    <option value="auto">Automatikus</option>
+    <option value="high">Erős</option>
+    <option value="normal">Normál</option>
+    <option value="low">Gyenge</option>
+    <option value="null">Nincs</option>
+  </select>
+
+  <button id="logoutBtn" style="background:#b04a4a;">Kijelentkezés</button>
+  <div id="dmFeedback" aria-live="assertive"></div>
+</div>
+
+<script>
+  // --- Változók ---
+  const worldTimeEl = document.getElementById('worldTime');
+  const dayCycleCanvas = document.getElementById('dayCycleCanvas');
+  const weatherDisplay = document.getElementById('weatherDisplay');
+
+  const shortRestBtn = document.getElementById('shortRestBtn');
+  const longRestBtn = document.getElementById('longRestBtn');
+
+  const todoInput = document.getElementById('todoInput');
+  const addBtn = document.getElementById('addBtn');
+  const todoList = document.getElementById('todoList');
+  // DM elemek
+  const dmLoginSection = document.getElementById('dmLoginSection');
+  const dmPasswordInput = document.getElementById('dmPasswordInput');
+  const dmLoginBtn = document.getElementById('dmLoginBtn');
+  const dmLoginError = document.getElementById('dmLoginError');
+
+  const dmPanel = document.getElementById('dmPanel');
+  const timeSetInput = document.getElementById('timeSetInput');
+  const timeSpeedInput = document.getElementById('timeSpeedInput');
+  const weatherSelect = document.getElementById('weatherSelect');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const dmFeedback = document.getElementById('dmFeedback');
+
+  // --- Állapot ---
+  // Alap világidő: év 467, 1 Jan 00:00 UTC
+  let worldTime = new Date(Date.UTC(467, 0, 1, 0, 0, 0));
+  let timeSpeed = 1; // 1x idősebesség alap
+  let lastUpdate = Date.now();
+
+  // Időjárás állapot
+  let weatherAuto = true;
+  let currentWeather = 'clear';
+
+  // DM jelszó (példa, később átállítható)
+  const DM_PASSWORD = 'dm1234';
+
+  // --- Segédfüggvények ---
+
+  // Segédszín interpoláció
+  function getColorInterpolation(varName1, varName2, t) {
+    const color1 = getComputedStyle(document.documentElement).getPropertyValue(varName1).trim();
+    const color2 = getComputedStyle(document.documentElement).getPropertyValue(varName2).trim();
+
+    function hexToRgb(hex) {
+      if (hex[0] === '#') hex = hex.slice(1);
+      if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+      const bigint = parseInt(hex, 16);
+      return {
+        r: (bigint >> 16) & 255,
+        g: (bigint >> 8) & 255,
+        b: bigint & 255,
+      };
+    }
+
+    const c1 = hexToRgb(color1);
+    const c2 = hexToRgb(color2);
+
+    const r = Math.round(c1.r + (c2.r - c1.r) * t);
+    const g = Math.round(c1.g + (c2.g - c1.g) * t);
+    const b = Math.round(c1.b + (c2.b - c1.b) * t);
+
+    return `rgb(${r},${g},${b})`;
+  }
+
+  // Frissíti a világidő kijelzést (pl. "467. 01. 01. 00:00")
+  function updateWorldTimeDisplay() {
+    const y = worldTime.getUTCFullYear();
+    const mo = (worldTime.getUTCMonth() + 1).toString().padStart(2, '0');
+    const d = worldTime.getUTCDate().toString().padStart(2, '0');
+    const h = worldTime.getUTCHours().toString().padStart(2, '0');
+    const mi = worldTime.getUTCMinutes().toString().padStart(2, '0');
+    worldTimeEl.textContent = `${y}.${mo}.${d}. // ${h}:${mi}`;
+  }
+
+  // Frissíti a napkört (canvas)
+  function updateDayCycle() {
+    const ctx = dayCycleCanvas.getContext('2d');
+    const cx = dayCycleCanvas.width / 2;
+    const cy = dayCycleCanvas.height / 2;
+    const radius = 100;
+
+    const hour = worldTime.getUTCHours() + worldTime.getUTCMinutes() / 60;
+
+    let dayColor;
+    if (hour >= 5 && hour < 7) dayColor = getColorInterpolation('--color-midnight', '--color-dawn', (hour - 5) / 2);
+    else if (hour >= 7 && hour < 12) dayColor = getColorInterpolation('--color-dawn', '--color-morning', (hour - 7) / 5);
+    else if (hour >= 12 && hour < 15) dayColor = getColorInterpolation('--color-morning', '--color-noon', (hour - 12) / 3);
+    else if (hour >= 15 && hour < 18) dayColor = getColorInterpolation('--color-noon', '--color-afternoon', (hour - 15) / 3);
+    else if (hour >= 18 && hour < 20) dayColor = getColorInterpolation('--color-afternoon', '--color-evening', (hour - 18) / 2);
+    else if (hour >= 20 && hour < 24) dayColor = getColorInterpolation('--color-evening', '--color-night', (hour - 20) / 4);
+    else dayColor = getColorInterpolation('--color-night', '--color-midnight', hour / 5);
+
+    ctx.clearRect(0, 0, dayCycleCanvas.width, dayCycleCanvas.height);
+    const gradient = ctx.createRadialGradient(cx, cy, radius * 0.3, cx, cy, radius);
+    gradient.addColorStop(0, dayColor);
+    gradient.addColorStop(1, '#0a1a38');
+
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Óra mutató
+    const angle = (hour / 24) * 2 * Math.PI - Math.PI / 2;
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(angle) * radius * 0.85, cy + Math.sin(angle) * radius * 0.85);
+    ctx.stroke();
+
+    // Középpont nap jelzés
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 8, 0, 2 * Math.PI);
+    ctx.fill();
+  }
+
+  // Időjárás meghatározása automata módban (napfény, óraszám, stb.)
+  function seededRandom(seed) {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
+function determineAutoWeather() {
+  const hour = worldTime.getUTCHours();
+  const minute = worldTime.getUTCMinutes();
+
+  // Kiszámolunk egy számot, pl nap és óra alapján
+  // Így az időjárás stabil lesz minden órára
+  const day = Math.floor(worldTime.getTime() / (1000 * 60 * 60 * 24)); // teljes napok száma
+  const hourSeed = day * 24 + hour; // minden órának külön seedje van
+
+  const rand = seededRandom(hourSeed);
+
+  const dayFraction = (hour + minute / 60) / 24;
+
+  if (dayFraction >= 0.25 && dayFraction < 0.75) {
+    // Nappal - 80% tiszta, 15% felhős, 5% eső
+    if (rand < 0.8) return 'clear';
+    if (rand < 0.95) return 'cloudy';
+    return 'rain';
+  } else {
+    // Éjszaka - 50% tiszta, 30% felhős, 20% vihar vagy hó
+    if (rand < 0.5) return 'clear';
+    if (rand < 0.8) return 'cloudy';
+    if (rand < 0.9) return 'storm';
+    return 'snow';
+  }
+}
+
+  // Időjárás megjelenítése
+  function updateWeatherDisplay() {
+    if (weatherAuto) {
+      currentWeather = determineAutoWeather();
+      weatherSelect.value = 'auto';
+    } else {
+      currentWeather = weatherSelect.value;
+    }
+
+    let colorVar = '--weather-clear';
+    let text = 'Tiszta idő';
+
+    switch (currentWeather) {
+      case 'clear': colorVar = '--weather-clear'; text = 'Tiszta idő'; break;
+      case 'cloudy': colorVar = '--weather-cloudy'; text = 'Felhős'; break;
+      case 'rain': colorVar = '--weather-rain'; text = 'Eső'; break;
+      case 'storm': colorVar = '--weather-storm'; text = 'Vihar'; break;
+      case 'snow': colorVar = '--weather-snow'; text = 'Havas'; break;
+    }
+
+    const c = getComputedStyle(document.documentElement).getPropertyValue(colorVar).trim();
+    weatherDisplay.innerHTML = `<span style="display:inline-block;width:20px;height:20px;background:${c};border-radius:50%;margin-right:8px;vertical-align:middle;"></span>${text}`;
+  }
+
+  // Fő frissítő ciklus (animáció)
+  function mainLoop() {
+    const now = Date.now();
+    const delta = (now - lastUpdate) / 1000; // másodperc
+    lastUpdate = now;
+
+    // Idő haladása
+    const msToAdd = delta * 1000 * timeSpeed;
+    worldTime = new Date(worldTime.getTime() + msToAdd);
+
+    updateWorldTimeDisplay();
+    updateDayCycle();
+    updateWeatherDisplay();
+    updateMagicState();
+    checkForDailyEvent();
+    setMagicLevel(determineAutoMagic(getCurrentHour(), getMoonPhase()));
+
+    requestAnimationFrame(mainLoop);
+  }
+
+  // --- DM kezelő ---
+
+  // Mentés DM beállításokba
+    function saveDMSettings() {
+      const settings = {
+        magicLevel: magicLevel,
+        magicAuto: magicAuto,
+        timeSpeed: timeSpeed
+      };
+      localStorage.setItem('dmSettings', JSON.stringify(settings));
+    }
+
+    // Betöltés DM beállításokból
+    function loadDMSettings() {
+      const saved = localStorage.getItem('dmSettings');
+      if (saved) {
+        const settings = JSON.parse(saved);
+        magicLevel = settings.magicLevel || 'normal';
+        magicAuto = settings.magicAuto !== undefined ? settings.magicAuto : true;
+        timeSpeed = settings.timeSpeed || 1;
+
+        // Frissítsd a select-et és a timeSpeed inputot, ha van
+        magicSelect.value = magicAuto ? 'auto' : magicLevel;
+        timeSpeedInput.value = timeSpeed;
+      }
+    }
+
+
+  function setDMPanelVisible(visible) {
+    if (visible) {
+      dmPanel.style.display = 'block';
+      dmLoginSection.style.display = 'none';
+      dmFeedback.textContent = '';
+    } else {
+      dmPanel.style.display = 'none';
+      dmLoginSection.style.display = 'block';
+      dmLoginError.textContent = '';
+      dmPasswordInput.value = '';
+    }
+  }
+
+  dmLoginBtn.addEventListener('click', () => {
+    if (dmPasswordInput.value === DM_PASSWORD) {
+      setDMPanelVisible(true);
+    } else {
+      dmLoginError.textContent = 'Hibás jelszó!';
+    }
+  });
+
+  logoutBtn.addEventListener('click', () => {
+    setDMPanelVisible(false);
+  });
+
+  // Idő beállítása DM panelen
+  timeSetInput.addEventListener('change', () => {
+    const val = timeSetInput.value;
+    if (!val) return;
+    // Alakítsuk át UTC időre
+    const newTime = new Date(val);
+    if (!isNaN(newTime.getTime())) {
+      worldTime = new Date(newTime.getTime());
+      dmFeedback.textContent = 'Világidő frissítve.';
+    } else {
+      dmFeedback.textContent = 'Érvénytelen dátum.';
+    }
+    saveDMSettings();
+  });
+
+  // Idősebesség beállítása
+  timeSpeedInput.addEventListener('input', () => {
+    let val = parseFloat(timeSpeedInput.value);
+    if (isNaN(val) || val < 0) val = 1;
+    if (val > 120) val = 120;
+    timeSpeedInput.value = val;
+    timeSpeed = val;
+    dmFeedback.textContent = `Idősebesség: ${val.toFixed(1)}x`;
+    saveDMSettings();
+  });
+
+  // Időjárás kiválasztás
+  weatherSelect.addEventListener('change', () => {
+    if (weatherSelect.value === 'auto') {
+      weatherAuto = true;
+      dmFeedback.textContent = 'Időjárás automatikus módra állítva.';
+    } else {
+      weatherAuto = false;
+      currentWeather = weatherSelect.value;
+      dmFeedback.textContent = `Időjárás manuálisan beállítva: ${weatherSelect.options[weatherSelect.selectedIndex].text}.`;
+    }
+    saveDMSettings();
+  });
+
+  // --- Pihenés gombok ---
+
+  shortRestBtn.addEventListener('click', () => {
+    worldTime = new Date(worldTime.getTime() + 60 * 60 * 1000);
+    dmFeedback.textContent = 'Rövid pihenés (1 óra) megtörtént.';
+  });
+
+  longRestBtn.addEventListener('click', () => {
+    worldTime = new Date(worldTime.getTime() + 8 * 60 * 60 * 1000);
+    dmFeedback.textContent = 'Hosszú pihenés (8 óra) megtörtént.';
+  });
+
+    // --- Mentés a localStorage-be ---
+
+  // Betöltéskor próbálja visszatölteni az időt
+  const savedTime = localStorage.getItem('savedWorldTime');
+  if (savedTime) {
+    const parsed = Date.parse(savedTime);
+    if (!isNaN(parsed)) {
+      worldTime = new Date(parsed);
+    }
+  }
+
+  // Oldal elhagyásakor menti az időt
+  window.addEventListener('beforeunload', () => {
+    localStorage.setItem('savedWorldTime', worldTime.toISOString());
+  });
+
+  // --- magic ---
+
+
+      // Változók
+  let magicAuto = true;
+  let magicLevel = 'normal'; // 'high', 'normal', 'low', 'null'
+
+  const magicSelect = document.getElementById('magicSelect');
+
+  // Eseménykezelő a DM panelen belül
+  magicSelect.addEventListener('change', () => {
+    if (magicSelect.value === 'auto') {
+      magicAuto = true;
+      dmFeedback.textContent = 'A mágia szintje automatikus módra lett állítva.';
+    } else {
+      magicAuto = false;
+      magicLevel = magicSelect.value;
+      const labels = {
+        high: 'Erős',
+        normal: 'Normál',
+        low: 'Gyenge',
+        null: 'Nincs'
+      };
+      dmFeedback.textContent = `A mágia manuálisan beállítva: ${labels[magicLevel]}`;
+    }
+    updateMagicState();
+    saveDMSettings();
+  });
+
+
+
+
+
+  function setMagicLevel(level) {
+    magicLevel = level; // ahol a magicLevel a változó a mágiaszint tárolására
+    updateMagicStatusDisplay(level);
+    // egyéb logikák, pl. újrarajzolás stb.
+  }
+
+  let previousMagicLevel = null;
+
+
+  // Automatikus mágia szint (például napszak vagy holdállás alapján)
+  function determineAutoMagic(hour, moonPhase) {
+
+
+   const weather = currentWeather
+   let level = 2; // alap: normál
+
+  if (hour >= 22 || hour < 4) {
+    if (weather === "clear") level = 4;
+    else if (weather === "rain" || weather === "cloudy") level = 3;
+    else level = 2;
+  } else if (hour >= 6 && hour < 18) {
+    if (weather === "clear") level = 1;
+    else if (weather === "storm") level = 2;
+    else level = 2;
+  } else {
+    level = 3;
+  }
+
+  if (moonPhase === "full" && level < 4) {
+    level += 1;
+  } else if (moonPhase === "new" && level > 1) {
+    level -= 1;
+  }
+
+  const levelsText = {
+    1: "Gyenge",
+    2: "Normál",
+    3: "Közepes",
+    4: "Erős"
+  };
+
+  return levelsText[level];
+  saveDMSettings();
+}
+
+// Aktuális óra lekérése
+function getCurrentHour() {
+  return new Date().getHours();
+}
+
+
+
+// Egyszerű holdfázis számítás (0-29 nap a holdhónap)
+function getMoonPhase() {
+  const now = new Date();
+  const synodicMonth = 29.53; // átlagos holdhónap hossza napokban
+  const newMoon = new Date(2000, 0, 6, 18, 14); // referencia újhold (2000. január 6.)
+
+  const daysSinceNewMoon = (now - newMoon) / 1000 / 60 / 60 / 24;
+  const currentPhase = daysSinceNewMoon % synodicMonth;
+
+  if (currentPhase < 1.84566) return "new";
+  else if (currentPhase < 5.53699) return "waxing crescent";
+  else if (currentPhase < 9.22831) return "first quarter";
+  else if (currentPhase < 12.91963) return "waxing gibbous";
+  else if (currentPhase < 16.61096) return "full";
+  else if (currentPhase < 20.30228) return "waning gibbous";
+  else if (currentPhase < 23.99361) return "last quarter";
+  else if (currentPhase < 27.68493) return "waning crescent";
+  else return "new";
+}
+
+
+
+
+
+
+
+
+  // Mágia szint frissítése
+  function updateMagicState() {
+    if (magicAuto) {
+      magicLevel = determineAutoMagic();
+      magicSelect.value = 'auto';
+    }
+  }
+
+  function updateMagicStatusDisplay(level) {
+    const magicLevelText = document.getElementById("magic-level-text");
+    if (magicLevelText) {
+      magicLevelText.textContent = level;
+    }
+  }
+
+
+  // --- eventek---
+      // Determinisztikus véletlenszerűség (seed alapján)
+function seededDailyRandom(seed) {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
+// Esemény generátor
+function generateDailyEvent(currentDate) {
+  const daySeed = Math.floor(currentDate.getTime() / (1000 * 60 * 60 * 24));
+  const r = seededDailyRandom(daySeed);
+
+  if (r < 0.7) return null; // 60% eséllyel nincs esemény
+  if (r < 0.90) return "Egy vándor érkezik a városba.";
+  if (r < 0.99) return "Egy közeli faluban eltűnt egy gyermek.";
+  if (r < 1) return "Sűrű köd borítja a vidéket.";;
+}
+
+function events_comon(){
+    const comon_event = [
+      "",
+    ];
+
+
+    const daySeed = Math.floor(Math.random()*30);
+
+
+}
+
+
+
+// Utolsó napközbeni esemény dátum tároló
+let lastEventDate = null;
+let currentEventText = null;
+
+// Napi esemény ellenőrző
+  function checkForDailyEvent() {
+    const currentHour = worldTime.getUTCHours();
+    const currentDate = new Date(Date.UTC(
+      worldTime.getUTCFullYear(),
+      worldTime.getUTCMonth(),
+      worldTime.getUTCDate()
+    ));
+
+    if (
+      currentHour >= 6 &&
+      (!lastEventDate || lastEventDate.getTime() !== currentDate.getTime())
+    ) {
+      currentEventText = generateDailyEvent(currentDate);
+      lastEventDate = currentDate;
+
+      if (currentEventText) {
+        console.log("🧭 Napi esemény:", currentEventText);
+        showDailyEvent(currentEventText);
+      } else {
+        hideDailyEvent();
+      }
+    }
+  }
+
+  // Esemény megjelenítés
+  function showDailyEvent(text) {
+    const eventBox = document.getElementById("eventDisplay");
+    eventBox.textContent = "Napi esemény: " + text;
+    eventBox.style.display = "block";
+  }
+
+  function hideDailyEvent() {
+    const eventBox = document.getElementById("eventDisplay");
+    eventBox.style.display = "none";
+  }
+
+
+
+  // --- dm interface off ---
+  function dmpoff(){
+    if(dmLoginSection.style.display == 'none'){
+      dmLoginSection.style.display = 'block';
+      }else{
+        var element = document.getElementById("dmLoginSection");
+        dmLoginSection.style.display = 'none';
+      }
+    }
+
+
+
+  
+  // --- to do list ---  
+
+  // Betöltjük a mentett lista elemeket localStorage-ból
+  function loadTodos() {
+    const todos = JSON.parse(localStorage.getItem('todos') || '[]');
+    todoList.innerHTML = ''; // ürítjük a listát
+    todos.forEach((todo, index) => {
+      addTodoElement(todo, index);
+    });
+  }
+
+  // Létrehoz egy <li> elemet a listához
+  function addTodoElement(todoText, index) {
+    const li = document.createElement('li');
+    li.textContent = todoText;
+
+    // Törlés gomb minden elemhez
+    const delBtn = document.createElement('button');
+    delBtn.textContent = 'Törlés';
+    delBtn.style.marginLeft = '10px';
+    delBtn.addEventListener('click', () => {
+      removeTodo(index);
+    });
+
+    li.appendChild(delBtn);
+    todoList.appendChild(li);
+  }
+
+  // Új teendő hozzáadása
+  function addTodo() {
+    const todoText = todoInput.value.trim();
+    if (todoText === '') return alert('Írj be valamit!');
+
+    const todos = JSON.parse(localStorage.getItem('todos') || '[]');
+
+    if (todos.length >= 7) {
+      alert('Maximum 7 elem lehet a listában!');
+      return; // nem ad hozzá többet
+    }
+
+    todos.push(todoText);
+    localStorage.setItem('todos', JSON.stringify(todos));
+
+    todoInput.value = '';
+    loadTodos();
+  }
+
+  // Teendő törlése index alapján
+  function removeTodo(index) {
+    const todos = JSON.parse(localStorage.getItem('todos') || '[]');
+    todos.splice(index, 1);
+    localStorage.setItem('todos', JSON.stringify(todos));
+    loadTodos();
+  }
+
+
+
+
+  // --- Indítás ---
+  loadDMSettings();
+  loadTodos();
+  mainLoop()
+  updateWorldTimeDisplay();
+  updateDayCycle();
+  updateWeatherDisplay();
+  setDMPanelVisible(false);
+
+  lastUpdate = Date.now();
+  requestAnimationFrame(mainLoop);
+
+</script>
+</body>
+</html>

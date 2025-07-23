@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>D&D Crafting & Dissection System</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body >
+
+<nav id="nav">
+  <ul>
+    <li><a href="..\clock.html">time</a>
+    <li><a href="..\nagy térkép.html">big map</a>
+    <li><a href="..\cooking.html">cooking</a>
+    <li><a href="..\browing.html">brewing</a></li>
+  </ul>
+</nav>
+
+
+  <div class="main">
+  <div class="container mx-auto p-6">
+    <div class="text-center mb-6">
+      <h1 class="cím">
+        ⚔️ The forge ⚔️
+      </h1>
+      <p class="text-lg text-gray-300">Dynamic Crafting & Dissection -system</p>
+
+      <!-- Save Status & Controls -->
+      <div class="flex justify-center items-center gap-4 mt-4">
+        <div class="flex items-center gap-2 text-sm text-gray-400">
+          <span id="save-status-icon"></span>
+          <span id="save-status-text">Loading...</span>
+        </div>
+
+        <div class="flex gap-2">
+          <button id="save-button" class="px-3 py-1 text-xs border border-green-500 text-green-400 hover:bg-green-500 hover:text-black bg-transparent rounded-md flex items-center">
+            <i data-lucide="save" class="w-3 h-3 mr-1"></i>
+            Mentés Most
+          </button>
+
+          <!-- DM Panel Button -->
+          <button id="dm-panel-button" class="px-3 py-1 text-xs border border-red-500 text-red-400 hover:bg-red-500 hover:text-black bg-transparent rounded-md flex items-center">
+            <i data-lucide="lock" class="w-3 h-3 mr-1" id="dm-lock-icon"></i>
+            DM Panel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid lg:grid-cols-4 gap-6">
+      <!-- Inventory -->
+      <div class="bg-slate-800/50 border border-slate-700 rounded-lg overflow-hidden">
+        <div class="p-4 border-b border-slate-700">
+          <div class="flex items-center gap-2 text-yellow-400 font-bold">
+            <i data-lucide="crown" class="w-5 h-5"></i>
+            <h2>Materials (<span id="inventory-count">0</span>)</h2>
+          </div>
+          <p class="text-sm text-gray-400">Your crafting materials</p>
+        </div>
+        <div class="p-4">
+          <div class="h-80 overflow-y-auto pr-2" id="inventory-container">
+            <!-- Inventory items will be inserted here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Crafting Area -->
+      <div class="bg-slate-800/50 border border-slate-700 rounded-lg overflow-hidden">
+        <div class="p-4 border-b border-slate-700">
+          <div class="flex items-center gap-2 text-purple-400 font-bold">
+            <i data-lucide="wand2" class="w-5 h-5"></i>
+            <h2>AI Crafting</h2>
+          </div>
+          <p class="text-sm text-gray-400">Combine materials</p>
+        </div>
+        <div class="p-4 space-y-4">
+          <div class="min-h-32 p-3 border-2 border-dashed border-slate-600 rounded-lg" id="crafting-slots">
+            <div class="text-center text-gray-400 py-4" id="crafting-empty">
+              <i data-lucide="plus" class="w-6 h-6 mx-auto mb-1"></i>
+              <div class="text-xs">Add materials</div>
+            </div>
+            <div class="space-y-1" id="crafting-items">
+              <!-- Crafting items will be inserted here -->
+            </div>
+          </div>
+
+          <div class="flex gap-2">
+            <button id="craft-button" disabled class="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-xs py-2 rounded-md flex items-center justify-center">
+              <i data-lucide="sparkles" class="w-3 h-3 mr-1"></i>
+              Craft!
+            </button>
+            <button id="suggestion-button" class="border border-yellow-500 text-yellow-400 hover:bg-yellow-500 hover:text-black bg-transparent text-xs px-2 py-2 rounded-md">
+              <i data-lucide="zap" class="w-3 h-3"></i>
+            </button>
+          </div>
+
+          <div id="ai-suggestion" class="p-2 bg-gradient-to-r from-blue-900/50 to-purple-900/50 rounded-lg border border-blue-500/30 hidden">
+            <div class="flex items-start gap-2">
+              <i data-lucide="sparkles" class="w-3 h-3 text-blue-400 mt-0.5 flex-shrink-0"></i>
+              <p class="text-xs text-blue-100" id="ai-suggestion-text"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dissection Lab -->
+      <div class="bg-slate-800/50 border border-slate-700 rounded-lg overflow-hidden">
+        <div class="p-4 border-b border-slate-700">
+          <div class="flex items-center gap-2 text-red-400 font-bold">
+            <i data-lucide="scissors" class="w-5 h-5"></i>
+            <h2>Dissection Lab</h2>
+          </div>
+          <p class="text-sm text-gray-400">Extract materials</p>
+        </div>
+        <div class="p-4 space-y-4">
+          <!-- Tools -->
+          <div>
+            <div class="text-xs text-gray-400 mb-2">Select Tool:</div>
+            <div class="flex gap-1 flex-wrap" id="tools-container">
+              <!-- Tools will be inserted here -->
+            </div>
+          </div>
+
+          <!-- Dissectables -->
+          <div>
+            <div class="text-xs text-gray-400 mb-2">
+              Dissectables (<span id="dissectables-count">0</span>):
+            </div>
+            <div class="h-40 overflow-y-auto pr-2" id="dissectables-container">
+              <!-- Dissectables will be inserted here -->
+            </div>
+          </div>
+
+          <button id="dissect-button" disabled class="w-full bg-gradient-to-r from-red-600 to-red-600 hover:from-red-700 hover:to-orange-700 text-xs py-2 rounded-md flex items-center justify-center">
+            <i data-lucide="pocket-knife" class="w-3 h-3 mr-1"></i>
+            Dissect!
+          </button>
+        </div>
+      </div>
+
+      <!-- Results & History -->
+      <div class="bg-slate-800/50 border border-slate-700 rounded-lg overflow-hidden">
+        <div class="p-4 border-b border-slate-700">
+          <div class="flex items-center gap-2 text-green-400 font-bold">
+            <i data-lucide="star" class="w-5 h-5"></i>
+            <h2>Results (<span id="crafted-count">0</span>)</h2>
+          </div>
+        </div>
+        <div class="p-4">
+          <div class="tabs">
+            <div class="tab-buttons grid grid-cols-3 bg-slate-700 rounded-md overflow-hidden">
+              <button class="tab-button active text-xs py-2" data-tab="crafted">Crafted</button>
+              <button class="tab-button text-xs py-2" data-tab="craft-history">C.History</button>
+              <button class="tab-button text-xs py-2" data-tab="dissect-history">D.History</button>
+            </div>
+
+            <div class="tab-content mt-4 active" id="crafted-tab">
+              <div class="h-80 overflow-y-auto pr-2" id="crafted-container">
+                <div class="text-center text-gray-400 py-8" id="crafted-empty">
+                  <i data-lucide="gem" class="w-6 h-6 mx-auto mb-2"></i>
+                  <div class="text-xs">No items crafted yet</div>
+                </div>
+                <!-- Crafted items will be inserted here -->
+              </div>
+            </div>
+
+            <div class="tab-content mt-4" id="craft-history-tab">
+              <div class="h-80 overflow-y-auto pr-2" id="craft-history-container">
+                <div class="text-center text-gray-400 py-8" id="craft-history-empty">
+                  <i data-lucide="scroll" class="w-6 h-6 mx-auto mb-2"></i>
+                  <div class="text-xs">No crafting history</div>
+                </div>
+                <!-- Crafting history will be inserted here -->
+              </div>
+            </div>
+
+            <div class="tab-content mt-4" id="dissect-history-tab">
+              <div class="h-80 overflow-y-auto pr-2" id="dissect-history-container">
+                <div class="text-center text-gray-400 py-8" id="dissect-history-empty">
+                  <i data-lucide="pocket-knife" class="w-6 h-6 mx-auto mb-2"></i>
+                  <div class="text-xs">No dissection history</div>
+                </div>
+                <!-- Dissection history will be inserted here -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DM Panel Modal -->
+  <div id="dm-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class=" bg-gradient-to-r from-blue-600 to-gray-600 *bg-slate-800 border border-slate-700 rounded-lg max-w-md w-full p-4">
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center gap-2 text-black font-bold">
+          <i data-lucide="user-cog" class="w-5 h-5"></i>
+          <h2>DM Control Panel</h2>
+        </div>
+        <button id="close-dm-modal" class="text-gray-400 hover:text-black">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <p class="text-sm text-gray-400 mb-4" id="dm-modal-description">Enter DM password to access</p>
+
+      <!-- Authentication Form -->
+      <div id="dm-auth-form" class="space-y-4">
+        <div>
+          <label for="dm-password" class="text-black block mb-1">DM Password:</label>
+          <input
+            id="dm-password"
+            type="password"
+            class="bg-slate-700 border border-slate-600 text-black w-full p-2 rounded-md"
+            placeholder="Enter DM password..."
+          />
+        </div>
+        <button id="dm-auth-button" class="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded-md flex items-center justify-center">
+          <i data-lucide="lock" class="w-4 h-4 mr-2"></i>
+          Authenticate
+        </button>
+      </div>
+
+      <!-- DM Control Panel -->
+      <div id="dm-control-panel" class="space-y-4 hidden">
+        <div class="flex justify-between items-center">
+          <span class="text-green-400 text-sm">✅ DM Authenticated</span>
+          <button id="dm-logout" class="px-2 py-1 border border-slate-600 rounded-md text-xs">
+            <i data-lucide="lock" class="w-3 h-3 mr-1"></i>
+            Logout
+          </button>
+        </div>
+
+        <!-- DM Action Tabs -->
+        <div class="dm-tabs">
+          <div class="tab-buttons grid grid-cols-2 bg-slate-700 rounded-md overflow-hidden">
+            <button class="dm-tab-button active text-xs py-2" data-tab="general">General Items</button>
+            <button class="dm-tab-button text-xs py-2" data-tab="corpses">Add Corpses</button>
+          </div>
+
+          <div class="dm-tab-content mt-4 active" id="general-tab">
+            <div class="space-y-3">
+              <div>
+                <label class="text-black block mb-1">Item Name:</label>
+                <input
+                  id="new-item-name"
+                  class="bg-slate-700 border border-slate-600 text-black w-full p-2 rounded-md"
+                  placeholder="Enter item name..."
+                />
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="text-black block mb-1">Type:</label>
+                  <select id="new-item-type" class="bg-slate-700 border border-slate-600 text-black w-full p-2 rounded-md">
+                    <option value="material">Material</option>
+                    <option value="creature">Creature</option>
+                    <option value="plant">Plant</option>
+                    <option value="mineral">Mineral</option>
+                    <option value="tool">Tool</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="text-black block mb-1">Rarity:</label>
+                  <select id="new-item-rarity" class="bg-slate-700 border border-slate-600 text-black w-full p-2 rounded-md">
+                    <option value="common">Common</option>
+                    <option value="uncommon">Uncommon</option>
+                    <option value="rare">Rare</option>
+                    <option value="epic">Epic</option>
+                    <option value="legendary">Legendary</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="text-black block mb-1">Icon:</label>
+                  <select id="new-item-icon" class="bg-slate-700 border border-slate-600 text-black w-full p-2 rounded-md">
+                    <!-- Icons will be added by JavaScript -->
+                  </select>
+                </div>
+
+                <div>
+                  <label class="text-black block mb-1">Quantity:</label>
+                  <input
+                    id="new-item-quantity"
+                    type="number"
+                    min="1"
+                    value="1"
+                    class="bg-slate-700 border border-slate-600 text-black w-full p-2 rounded-md"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label class="text-black block mb-1">Description:</label>
+                <textarea
+                  id="new-item-description"
+                  class="bg-slate-700 border border-slate-600 text-black w-full p-2 rounded-md"
+                  placeholder="Item description..."
+                  rows="2"
+                ></textarea>
+              </div>
+
+              <div>
+                <label class="text-black block mb-1">Properties (comma separated):</label>
+                <input
+                  id="new-item-properties"
+                  class="bg-slate-700 border border-slate-600 text-black w-full p-2 rounded-md"
+                  placeholder="magic, fire, rare..."
+                />
+              </div>
+
+              <div class="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="add-to-inventory"
+                  checked
+                  class="rounded"
+                />
+                <label for="add-to-inventory" class="text-black text-sm">
+                  Add to Materials (unchecked = add to Dissectables)
+                </label>
+              </div>
+
+              <button id="add-item-button" class="w-full bg-purple-600 hover:bg-purple-700 py-2 rounded-md flex items-center justify-center">
+                <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                Add Item
+              </button>
+            </div>
+          </div>
+
+          <div class="dm-tab-content mt-4" id="corpses-tab">
+            <div class="space-y-3">
+              <div class="text-center text-sm text-gray-300 mb-3">
+                🔪 Quick Add Corpses for Dissection
+              </div>
+
+              <div>
+                <label class="text-black block mb-1">Creature Name:</label>
+                <input
+                  id="new-corpse-name"
+                  class="bg-slate-700 border border-slate-600 text-black w-full p-2 rounded-md"
+                  placeholder="e.g., Orc Warrior, Ancient Dragon..."
+                />
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="text-black block mb-1">Creature Size:</label>
+                  <select id="new-corpse-rarity" class="bg-slate-700 border border-slate-600 text-black w-full p-2 rounded-md">
+                    <option value="common">Small (Goblin, Rat)</option>
+                    <option value="uncommon">Medium (Human, Orc)</option>
+                    <option value="rare">Large (Troll, Bear)</option>
+                    <option value="epic">Huge (Giant, Wyvern)</option>
+                    <option value="legendary">Colossal (Dragon, Titan)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="text-black block mb-1">Corpse Type:</label>
+                  <select id="new-corpse-icon" class="bg-slate-700 border border-slate-600 text-black w-full p-2 rounded-md">
+                    <option value="Skull">💀 Undead/Bone</option>
+                    <option value="Flame">🔥 Fire Creature</option>
+                    <option value="Eye">👁️ Shadow Beast</option>
+                    <option value="TreePine">🌲 Nature Spirit</option>
+                    <option value="Mountain">⛰️ Earth Elemental</option>
+                    <option value="Wind">💨 Air Elemental</option>
+                    <option value="Droplets">💧 Water Creature</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label class="text-black block mb-1">Quantity:</label>
+                <input
+                  id="new-corpse-quantity"
+                  type="number"
+                  min="1"
+                  max="10"
+                  value="1"
+                  class="bg-slate-700 border border-slate-600 text-black w-full p-2 rounded-md"
+                />
+              </div>
+
+              <div>
+                <label class="text-black block mb-1">Special Description (optional):</label>
+                <textarea
+                  id="new-corpse-description"
+                  class="bg-slate-700 border border-slate-600 text-black w-full p-2 rounded-md"
+                  placeholder="e.g., 'Slain in the northern mountains', 'Corrupted by dark magic'..."
+                  rows="2"
+                ></textarea>
+              </div>
+
+              <div>
+                <label class="text-black block mb-1">Additional Properties:</label>
+                <input
+                  id="new-corpse-properties"
+                  class="bg-slate-700 border border-slate-600 text-black w-full p-2 rounded-md"
+                  placeholder="Auto-filled based on type, add more if needed..."
+                />
+              </div>
+
+              <div class="bg-slate-700/50 p-3 rounded-lg">
+                <div class="text-xs text-gray-300 mb-2">Preview:</div>
+                <div class="text-sm text-black" id="corpse-preview-name">Creature Name Corpse</div>
+                <div class="text-xs text-gray-400" id="corpse-preview-desc">Remains of a defeated creature</div>
+                <div class="text-xs text-blue-300 mt-1" id="corpse-preview-props">Properties: creature, corpse</div>
+              </div>
+
+              <button id="add-corpse-button" class="w-full bg-red-600 hover:bg-red-700 py-2 rounded-md flex items-center justify-center" disabled>
+                <i data-lucide="skull" class="w-4 h-4 mr-2"></i>
+                Add Corpse to Dissection Lab
+              </button>
+
+              <div class="text-xs text-gray-400 text-center">
+                💡 Corpses are automatically added to the Dissection Lab
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+  <script src="script.js"></script>
+</body>
+</html>

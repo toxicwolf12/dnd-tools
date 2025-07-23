@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fantasy Mágikus Főzésrendszer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+            nav{
+            left:25px;
+            text-align: center;
+            position: fixed;
+            top: 0;
+            width: 98%;
+            background-color:#071f4a;
+            padding: 1px;
+            border-radius: 14px;
+            
+            }
+
+            nav ul {
+            list-style: none;
+            padding-left: 0;
+            }
+            nav ul li {
+            margin: 0.5rem 0;
+            display: inline;
+            padding: 20px;
+            font-weight: 900;
+            font-size:20px;
+            }
+
+            nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            }
+            nav ul li a:hover {
+            text-decoration: underline;
+            }
+
+
+
+
+
+        #cook-recipe-select{
+            background-color: #22273f;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(to bottom, #1a2238, #364560);
+            color: gray;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 20px;
+            min-height: calc(100vh - 40px);
+        }
+
+        .panel {
+            width: 450px;
+            background: #071f4a;
+            border: 3px double #80b3ff;
+            border-radius: 10px;
+            padding: 20px;
+            
+            overflow-y: auto;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .panel h2 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+            border-bottom: 2px solid #fff;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #80b3ff;
+            border-radius: 5px;
+            background: rgba(139, 69, 19, 0.2);
+            color: #e8d5b7;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #fff;
+            box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+        }
+
+        button {
+            background: linear-gradient(135deg, #80b3ff 0%, #071f4a 100%);
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+            transition: all 0.3s ease;
+            border: 1px solid #654321;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #071f4a 0%, #80b3ff 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .item-list {
+            width: 400px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #80b3ff;
+            border-radius: 5px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .item {
+            padding: 10px;
+            border-bottom: 1px solid #80b3ff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item:last-child {
+            border-bottom: none;
+        }
+
+        .item:hover {
+            background: rgba(139, 69, 19, 0.3);
+        }
+
+        .rarity-common { color: #ffffff; }
+        .rarity-rare { color: #0080ff; }
+        .rarity-legendary { color: #ff8000; }
+
+        .recipe-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #80b3ff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .recipe-title {
+            color: #fff;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .buff-card {
+            background: rgba(0, 100, 0, 0.2);
+            border: 1px solid #228b22;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+
+        .buff-expired {
+            background: rgba(100, 0, 0, 0.2);
+            border-color: #8b2222;
+        }
+
+        .cooking-simulation {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid #fff;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .dice-result {
+            font-size: 2em;
+            color: #fff;
+            margin: 10px 0;
+        }
+
+        .success { color: #00ff00; }
+        .failure { color: #ff0000; }
+        .critical { color: #ff8000; text-shadow: 0 0 10px currentColor; }
+
+        .search-box {
+            margin-bottom: 15px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            background: rgba(139, 69, 19, 0.2);
+            border: 1px solid #80b3ff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: rgba(255, 215, 0, 0.2);
+            color: #fff;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: bold;
+            margin: 0 4px;
+        }
+
+        .badge-common { background: #6b7280; color: white; }
+        .badge-rare { background: #3b82f6; color: white; }
+        .badge-legendary { background: #f97316; color: white; }
+        .badge-outline { border: 1px solid #fff; color: #fff; background: transparent; }
+
+        .btn-destructive { background: #dc2626; }
+        .btn-destructive:hover { background: #b91c1c; }
+
+        .btn-green { background: #16a34a; }
+        .btn-green:hover { background: #15803d; }
+
+        .btn-blue { background: #2563eb; }
+        .btn-blue:hover { background: #1d4ed8; }
+
+        .btn-purple { background: #7c3aed; }
+        .btn-purple:hover { background: #6d28d9; }
+
+        .btn-orange { background: #ea580c; }
+        .btn-orange:hover { background: #c2410c; }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .quantity-input {
+            width: 60px;
+            text-align: center;
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+                height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav id="nav">
+        <ul>
+            <li><a href="clock.html">time</a>
+            <li><a href="nagy térkép.html">big map</a>
+            <li><a href="\carft\index.html">crafting</a>
+            <li><a href="browing.html">brewing</a></li>
+        </ul>
+    </nav>
+
+
+    <div class="container">
+        <!-- Bal panel: Hozzávalók -->
+        <div class="panel">
+            <h2>🧪 Hozzávalók</h2>
+            
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('ingredients', 'list')">Lista</div>
+                <div class="tab" onclick="switchTab('ingredients', 'add')">Hozzáadás</div>
+            </div>
+
+            <div id="ingredients-list" class="tab-content active">
+                <div class="search-box">
+                    <input type="text" id="ingredient-search" placeholder="Keresés..." onkeyup="searchIngredients()">
+                </div>
+                <div class="form-group">
+                    <select id="rarity-filter" onchange="filterIngredients()">
+                        <option value="all">Minden ritkaság</option>
+                        <option value="common">Gyakori</option>
+                        <option value="rare">Ritka</option>
+                        <option value="legendary">Legendás</option>
+                    </select>
+                </div>
+                <div id="ingredients-container" class="item-list"></div>
+            </div>
+
+            <div id="ingredients-add" class="tab-content">
+                <div class="form-group">
+                    <label>Név:</label>
+                    <input type="text" id="new-ingredient-name">
+                </div>
+                <div class="form-group">
+                    <label>Ritkaság:</label>
+                    <select id="new-ingredient-rarity">
+                        <option value="common">Gyakori</option>
+                        <option value="rare">Ritka</option>
+                        <option value="legendary">Legendás</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Leírás:</label>
+                    <textarea id="new-ingredient-description" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Mennyiség:</label>
+                    <input type="number" id="new-ingredient-quantity" min="1" value="1">
+                </div>
+                <button onclick="addIngredient()" class="btn-green">Hozzávaló hozzáadása</button>
+            </div>
+        </div>
+
+        <!-- Középső panel: Receptek -->
+        <div class="panel">
+            <h2>📜 Receptek & Főzés</h2>
+            
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('recipes', 'list')">Receptek</div>
+                <div class="tab" onclick="switchTab('recipes', 'add')">Új recept</div>
+                <div class="tab" onclick="switchTab('recipes', 'cook')">Főzés</div>
+            </div>
+
+            <div id="recipes-list" class="tab-content active">
+                <div class="search-box">
+                    <input type="text" id="recipe-search" placeholder="Recept keresése..." onkeyup="searchRecipes()">
+                </div>
+                <div id="recipes-container"></div>
+            </div>
+
+            <div id="recipes-add" class="tab-content">
+                <div class="form-group">
+                    <label>Recept neve:</label>
+                    <input type="text" id="new-recipe-name">
+                </div>
+                <div class="form-group">
+                    <label>Hozzávalók (min. 3 darab összesen):</label>
+                    <div id="selected-ingredients"></div>
+                    <div id="available-ingredients"></div>
+                </div>
+                <div class="form-group">
+                    <label>Főzési mód:</label>
+                    <select id="new-recipe-method">
+                        <option value="campfire">Tábori tűz</option>
+                        <option value="wanderer">Vándorkonyha</option>
+                        <option value="sanctuary">Szentélykonyha</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Buff hatás:</label>
+                    <input type="text" id="new-recipe-buff" placeholder="pl. +2 Erő, +1 Ügyesség">
+                </div>
+                <div class="form-group">
+                    <label>Hatástartam (napok):</label>
+                    <input type="number" id="new-recipe-duration" min="1" max="3" value="1">
+                </div>
+                <div class="form-group">
+                    <label>Nehézség (DC):</label>
+                    <input type="number" id="new-recipe-difficulty" min="5" max="25" value="15">
+                </div>
+                <button onclick="addRecipe()" class="btn-green">Recept mentése</button>
+            </div>
+
+            <div id="recipes-cook" class="tab-content">
+                <div class="form-group">
+                    <label>Válassz receptet:</label>
+                    <select id="cook-recipe-select">
+                        <option value="">Válassz receptet...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Játékos neve:</label>
+                    <input type="text" id="cook-player-name" placeholder="Játékos neve">
+                </div>
+                <div class="form-group">
+                    <label>Skill bónusz:</label>
+                    <input type="number" id="cook-skill-bonus" value="0" min="-5" max="10">
+                </div>
+                <button onclick="startCooking()" class="btn-purple">🎲 Főzés megkezdése!</button>
+                <div id="cooking-result" class="cooking-simulation" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Jobb panel: Buff Tracker -->
+        <div class="panel">
+            <h2>✨ Aktív Buffok</h2>
+            
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('buffs', 'active')">Aktív</div>
+            </div>
+
+            <div id="buffs-active" class="tab-content active">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <div style="color: #fff;">🕐 <span id="current-day">1. nap</span></div>
+                    <button onclick="advanceDay()" class="btn-blue">Nap előrehaladása</button>
+                </div>
+                <div id="active-buffs-container"></div>
+            </div>
+
+            <div id="buffs-manage" class="tab-content">
+                <div class="form-group">
+                    <label>Játékos:</label>
+                    <input type="text" id="manual-buff-player">
+                </div>
+                <div class="form-group">
+                    <label>Buff neve:</label>
+                    <input type="text" id="manual-buff-name">
+                </div>
+                <div class="form-group">
+                    <label>Hatás:</label>
+                    <input type="text" id="manual-buff-effect">
+                </div>
+                <div class="form-group">
+                    <label>Hátralévő napok:</label>
+                    <input type="number" id="manual-buff-duration" min="1" max="3" value="1">
+                </div>
+                <button onclick="addManualBuff()" class="btn-green">Buff hozzáadása</button>
+                <button onclick="clearExpiredBuffs()" class="btn-orange">Lejárt buffok törlése</button>
+                <button onclick="clearAllBuffs()" class="btn-destructive">Összes buff törlése</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Globális változók
+        let ingredients = [];
+        let recipes = [];
+        let activeBuffs = [];
+        let currentDay = 1;
+        let selectedRecipeIngredients = [];
+
+        // Alapértelmezett adatok
+        const defaultIngredients = [
+            { id: 1, name: "Vadgomba", rarity: "common", description: "Erdőben található gomba", quantity: 10 },
+            { id: 2, name: "Kristálysó", rarity: "rare", description: "Mágikus tulajdonságokkal rendelkező só", quantity: 5 },
+            { id: 3, name: "Sárkánygyökér", rarity: "legendary", description: "Rendkívül ritka és erős gyógynövény", quantity: 2 },
+            { id: 4, name: "Erdei bogyó", rarity: "common", description: "Édes, tápláló bogyó", quantity: 15 },
+            { id: 5, name: "Holdfény virág", rarity: "rare", description: "Csak teliholdkor szüretelhető", quantity: 3 },
+            { id: 6, name: "Főnix toll", rarity: "legendary", description: "Újjászületés erejével bír", quantity: 1 }
+        ];
+
+        const defaultRecipes = [
+            {
+                id: 1,
+                name: "Erő italka",
+                ingredients: [
+                    { ingredientId: 1, quantity: 2 },
+                    { ingredientId: 2, quantity: 1 },
+                    { ingredientId: 4, quantity: 3 }
+                ],
+                method: "campfire",
+                buff: "+2 Erő",
+                duration: 1,
+                difficulty: 12
+            }
+        ];
+
+        // Segédfüggvények a számok kezelésére
+        function safeParseInt(value, defaultValue = 0) {
+            const parsed = parseInt(value);
+            return isNaN(parsed) ? defaultValue : parsed;
+        }
+
+        function ensureNumber(value, defaultValue = 1) {
+            if (typeof value === 'number' && !isNaN(value)) {
+                return value;
+            }
+            const parsed = parseInt(value);
+            return isNaN(parsed) ? defaultValue : parsed;
+        }
+
+        // Inicializálás
+        function init() {
+            loadData();
+            if (ingredients.length === 0) {
+                ingredients = [...defaultIngredients];
+                saveData();
+            }
+            if (recipes.length === 0) {
+                recipes = [...defaultRecipes];
+                saveData();
+            }
+            
+            // Biztosítsuk, hogy minden hozzávaló quantity értéke szám
+            ingredients = ingredients.map(ing => ({
+                ...ing,
+                quantity: ensureNumber(ing.quantity, 1)
+            }));
+            
+            updateIngredientsList();
+            updateRecipesList();
+            updateActiveBuffs();
+            updateRecipeSelects();
+            updateCurrentDay();
+            updateAvailableIngredients();
+        }
+
+        // Adatok mentése és betöltése
+        function saveData() {
+            localStorage.setItem('fantasyKitchen', JSON.stringify({
+                ingredients,
+                recipes,
+                activeBuffs,
+                currentDay
+            }));
+        }
+
+        function loadData() {
+            const data = localStorage.getItem('fantasyKitchen');
+            if (data) {
+                const parsed = JSON.parse(data);
+                ingredients = parsed.ingredients || [];
+                recipes = parsed.recipes || [];
+                activeBuffs = parsed.activeBuffs || [];
+                currentDay = ensureNumber(parsed.currentDay, 1);
+            }
+        }
+
+        // Tab kezelés
+        function switchTab(section, tab) {
+            // Tab gombok frissítése
+            const sectionElement = document.querySelector(`#${section}-list`).closest('.panel');
+            const tabs = sectionElement.querySelectorAll('.tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Tab tartalom frissítése
+            const contents = sectionElement.querySelectorAll('.tab-content');
+            contents.forEach(c => c.classList.remove('active'));
+            
+            const activeContent = document.getElementById(`${section}-${tab}`);
+            if (activeContent) {
+                activeContent.classList.add('active');
+            }
+        }
+
+        // Hozzávalók kezelése
+        function addIngredient() {
+            const name = document.getElementById('new-ingredient-name').value.trim();
+            const rarity = document.getElementById('new-ingredient-rarity').value;
+            const description = document.getElementById('new-ingredient-description').value.trim();
+            const quantityInput = document.getElementById('new-ingredient-quantity').value;
+            const quantity = ensureNumber(quantityInput, 1);
+
+            if (!name) {
+                alert('Kérlek add meg a hozzávaló nevét!');
+                return;
+            }
+
+            const newIngredient = {
+                id: Date.now(),
+                name,
+                rarity,
+                description,
+                quantity
+            };
+
+            ingredients.push(newIngredient);
+            saveData();
+            updateIngredientsList();
+            updateRecipeSelects();
+            updateAvailableIngredients();
+
+            // Form törlése
+            document.getElementById('new-ingredient-name').value = '';
+            document.getElementById('new-ingredient-description').value = '';
+            document.getElementById('new-ingredient-quantity').value = '1';
+        }
+
+        function deleteIngredient(id) {
+            if (confirm('Biztosan törölni szeretnéd ezt a hozzávalót?')) {
+                ingredients = ingredients.filter(ing => ing.id !== id);
+                saveData();
+                updateIngredientsList();
+                updateRecipeSelects();
+                updateAvailableIngredients();
+            }
+        }
+
+        function updateIngredientQuantity(id, change) {
+            ingredients = ingredients.map(ing => {
+                if (ing.id === id) {
+                    const currentQuantity = ensureNumber(ing.quantity, 0);
+                    const newQuantity = Math.max(0, currentQuantity + change);
+                    return { ...ing, quantity: newQuantity };
+                }
+                return ing;
+            });
+            saveData();
+            updateIngredientsList();
+        }
+
+        function updateIngredientsList() {
+            const container = document.getElementById('ingredients-container');
+            const searchTerm = document.getElementById('ingredient-search').value.toLowerCase();
+            const rarityFilter = document.getElementById('rarity-filter').value;
+
+            let filteredIngredients = ingredients.filter(ing => {
+                const matchesSearch = ing.name.toLowerCase().includes(searchTerm);
+                const matchesRarity = rarityFilter === 'all' || ing.rarity === rarityFilter;
+                return matchesSearch && matchesRarity;
+            });
+
+            container.innerHTML = filteredIngredients.map(ing => {
+                const quantity = ensureNumber(ing.quantity, 0);
+                const rarityText = ing.rarity === 'common' ? 'Gyakori' : ing.rarity === 'rare' ? 'Ritka' : 'Legendás';
+                
+                return `
+                    <div class="item">
+                        <div>
+                            <strong class="rarity-${ing.rarity}">${ing.name}</strong>
+                            <span class="badge badge-${ing.rarity}">${rarityText}</span>
+                            <span class="badge badge-outline">${quantity} db</span>
+                            <div style="font-size: 0.8em; opacity: 0.8;">${ing.description}</div>
+                        </div>
+                        <div class="quantity-controls">
+                            <button onclick="updateIngredientQuantity(${ing.id}, -1)" ${quantity <= 0 ? 'disabled' : ''}>-</button>
+                            <button onclick="updateIngredientQuantity(${ing.id}, 1)">+</button>
+                            <button onclick="deleteIngredient(${ing.id})" class="btn-destructive">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function searchIngredients() {
+            updateIngredientsList();
+        }
+
+        function filterIngredients() {
+            updateIngredientsList();
+        }
+
+        // Recept hozzávalók kezelése
+        function updateAvailableIngredients() {
+            const container = document.getElementById('available-ingredients');
+            if (!container) return;
+
+            container.innerHTML = `
+                <h4 style="color: #fff; margin: 10px 0;">Elérhető hozzávalók:</h4>
+                ${ingredients.map(ingredient => {
+                    const isInRecipe = selectedRecipeIngredients.some(ri => ri.ingredientId === ingredient.id);
+                    const quantity = ensureNumber(ingredient.quantity, 0);
+                    
+                    return `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(139, 69, 19, 0.2); margin: 5px 0; border-radius: 5px;">
+                            <div>
+                                <span style="color: #e8d5b7;">${ingredient.name}</span>
+                                <span class="badge badge-outline">${quantity} db készleten</span>
+                            </div>
+                            <button onclick="addIngredientToRecipe(${ingredient.id})" ${selectedRecipeIngredients.length >= 5 && !isInRecipe ? 'disabled' : ''}>
+                                ${isInRecipe ? '+' : 'Hozzáad'}
+                            </button>
+                        </div>
+                    `;
+                }).join('')}
+            `;
+
+            updateSelectedIngredients();
+        }
+
+        function updateSelectedIngredients() {
+            const container = document.getElementById('selected-ingredients');
+            if (!container) return;
+
+            if (selectedRecipeIngredients.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            container.innerHTML = `
+                <h4 style="color: #fff; margin: 10px 0;">Kiválasztott hozzávalók:</h4>
+                ${selectedRecipeIngredients.map(ri => {
+                    const ingredient = ingredients.find(ing => ing.id === ri.ingredientId);
+                    const quantity = ensureNumber(ri.quantity, 1);
+                    
+                    return `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(139, 69, 19, 0.3); margin: 5px 0; border-radius: 5px;">
+                            <span style="color: #e8d5b7;">${ingredient?.name || 'Ismeretlen'} - ${quantity} db</span>
+                            <div class="quantity-controls">
+                                <input type="number" min="1" value="${quantity}" class="quantity-input" 
+                                       onchange="updateRecipeIngredientQuantity(${ri.ingredientId}, this.value)">
+                                <button onclick="removeIngredientFromRecipe(${ri.ingredientId})" class="btn-destructive">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            `;
+        }
+
+        function addIngredientToRecipe(ingredientId) {
+            if (selectedRecipeIngredients.length >= 5) {
+                alert('Maximum 5 hozzávaló adható hozzá!');
+                return;
+            }
+
+            const existingIngredient = selectedRecipeIngredients.find(ri => ri.ingredientId === ingredientId);
+            if (existingIngredient) {
+                existingIngredient.quantity = ensureNumber(existingIngredient.quantity, 0) + 1;
+            } else {
+                selectedRecipeIngredients.push({ ingredientId, quantity: 1 });
+            }
+
+            updateAvailableIngredients();
+        }
+
+        function removeIngredientFromRecipe(ingredientId) {
+            selectedRecipeIngredients = selectedRecipeIngredients.filter(ri => ri.ingredientId !== ingredientId);
+            updateAvailableIngredients();
+        }
+
+        function updateRecipeIngredientQuantity(ingredientId, inputValue) {
+            const quantity = ensureNumber(inputValue, 1);
+            
+            if (quantity <= 0) {
+                removeIngredientFromRecipe(ingredientId);
+                return;
+            }
+
+            const ingredient = selectedRecipeIngredients.find(ri => ri.ingredientId === ingredientId);
+            if (ingredient) {
+                ingredient.quantity = quantity;
+            }
+
+            updateSelectedIngredients();
+        }
+
+        // Receptek kezelése
+        function addRecipe() {
+            const name = document.getElementById('new-recipe-name').value.trim();
+            const method = document.getElementById('new-recipe-method').value;
+            const buff = document.getElementById('new-recipe-buff').value.trim();
+            const duration = ensureNumber(document.getElementById('new-recipe-duration').value, 1);
+            const difficulty = ensureNumber(document.getElementById('new-recipe-difficulty').value, 15);
+
+            if (!name || !buff) {
+                alert('Kérlek töltsd ki a kötelező mezőket!');
+                return;
+            }
+
+            const totalIngredientCount = selectedRecipeIngredients.reduce((sum, ingredient) => {
+                return sum + ensureNumber(ingredient.quantity, 0);
+            }, 0);
+
+            if (totalIngredientCount < 3) {
+                alert('Minimum 3 darab hozzávaló szükséges összesen!');
+                return;
+            }
+
+            const newRecipe = {
+                id: Date.now(),
+                name,
+                ingredients: selectedRecipeIngredients.map(ri => ({
+                    ingredientId: ri.ingredientId,
+                    quantity: ensureNumber(ri.quantity, 1)
+                })),
+                method,
+                buff,
+                duration,
+                difficulty
+            };
+
+            recipes.push(newRecipe);
+            saveData();
+            updateRecipesList();
+            updateRecipeSelects();
+
+            // Form törlése
+            document.getElementById('new-recipe-name').value = '';
+            document.getElementById('new-recipe-buff').value = '';
+            selectedRecipeIngredients = [];
+            updateAvailableIngredients();
+        }
+
+        function deleteRecipe(id) {
+            if (confirm('Biztosan törölni szeretnéd ezt a receptet?')) {
+                recipes = recipes.filter(recipe => recipe.id !== id);
+                saveData();
+                updateRecipesList();
+                updateRecipeSelects();
+            }
+        }
+
+        function updateRecipesList() {
+            const container = document.getElementById('recipes-container');
+            const searchTerm = document.getElementById('recipe-search').value.toLowerCase();
+
+            let filteredRecipes = recipes.filter(recipe => 
+                recipe.name.toLowerCase().includes(searchTerm)
+            );
+
+            container.innerHTML = filteredRecipes.map(recipe => {
+                const ingredientNames = recipe.ingredients
+                    .map(ri => {
+                        const ingredient = ingredients.find(ing => ing.id === ri.ingredientId);
+                        const quantity = ensureNumber(ri.quantity, 1);
+                        return ingredient ? `${quantity}x ${ingredient.name}` : `${quantity}x Ismeretlen`;
+                    })
+                    .join(', ');
+
+                const methodNames = {
+                    campfire: 'Tábori tűz',
+                    wanderer: 'Vándorkonyha',
+                    sanctuary: 'Szentélykonyha'
+                };
+
+                return `
+                    <div class="recipe-card">
+                        <div class="recipe-title">${recipe.name}</div>
+                        <div><strong>Hozzávalók:</strong> ${ingredientNames}</div>
+                        <div><strong>Főzési mód:</strong> ${methodNames[recipe.method]}</div>
+                        <div><strong>Buff:</strong> ${recipe.buff}</div>
+                        <div><strong>Időtartam:</strong> ${recipe.duration} nap</div>
+                        <div><strong>Nehézség:</strong> DC ${recipe.difficulty}</div>
+                        <button onclick="deleteRecipe(${recipe.id})" class="btn-destructive" style="margin-top: 10px;">Törlés</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function searchRecipes() {
+            updateRecipesList();
+        }
+
+        function updateRecipeSelects() {
+            const cookSelect = document.getElementById('cook-recipe-select');
+            if (cookSelect) {
+                const currentValue = cookSelect.value;
+                cookSelect.innerHTML = '<option value="">Válassz receptet...</option>';
+                recipes.forEach(recipe => {
+                    cookSelect.innerHTML += `<option value="${recipe.id}" ${currentValue == recipe.id ? 'selected' : ''}>${recipe.name}</option>`;
+                });
+            }
+        }
+
+        // Főzés szimuláció
+        function startCooking() {
+            const recipeId = safeParseInt(document.getElementById('cook-recipe-select').value);
+            const playerName = document.getElementById('cook-player-name').value.trim();
+            const skillBonus = safeParseInt(document.getElementById('cook-skill-bonus').value, 0);
+
+            if (!recipeId || !playerName) {
+                alert('Kérlek válassz receptet és add meg a játékos nevét!');
+                return;
+            }
+
+            const recipe = recipes.find(r => r.id === recipeId);
+            if (!recipe) {
+                alert('Recept nem található!');
+                return;
+            }
+
+            // Ellenőrizd, hogy van-e elég hozzávaló
+            const hasEnoughIngredients = recipe.ingredients.every(recipeIngredient => {
+                const ingredient = ingredients.find(ing => ing.id === recipeIngredient.ingredientId);
+                const ingredientQuantity = ensureNumber(ingredient?.quantity, 0);
+                const requiredQuantity = ensureNumber(recipeIngredient.quantity, 1);
+                return ingredientQuantity >= requiredQuantity;
+            });
+
+            if (!hasEnoughIngredients) {
+                alert('Nincs elég hozzávaló a recepthez!');
+                return;
+            }
+
+            // Dobás (d20 + skill bónusz)
+            const roll = Math.floor(Math.random() * 20) + 1;
+            const total = roll + skillBonus;
+            const dc = recipe.difficulty;
+
+            const resultContainer = document.getElementById('cooking-result');
+            resultContainer.style.display = 'block';
+
+            let resultClass = '';
+            let resultText = '';
+            let success = false;
+            let buffDuration = recipe.duration;
+
+            if (roll === 20) {
+                // Kritikus siker
+                resultClass = 'critical success';
+                resultText = 'KRITIKUS SIKER!';
+                success = true;
+                buffDuration *= 2;
+                addBuff(playerName, recipe.name, recipe.buff, buffDuration);
+            } else if (roll === 1) {
+                // Kritikus kudarc
+                resultClass = 'critical failure';
+                resultText = 'KRITIKUS KUDARC!';
+                const negativeEffects = [
+                    'Mérgezés - 1 nap',
+                    'Gyengeség - 1 nap',
+                    'Hányinger - 1 nap'
+                ];
+                const randomEffect = negativeEffects[Math.floor(Math.random() * negativeEffects.length)];
+                addBuff(playerName, 'Félresikerült főzés', randomEffect, 1);
+            } else if (total >= dc) {
+                // Normál siker
+                resultClass = 'success';
+                resultText = 'SIKER!';
+                success = true;
+                addBuff(playerName, recipe.name, recipe.buff, buffDuration);
+            } else {
+                // Kudarc
+                resultClass = 'failure';
+                resultText = 'KUDARC!';
+            }
+
+            // Sikeres főzés esetén csökkentsd a hozzávalók mennyiségét
+            if (success && resultClass !== 'critical failure') {
+                ingredients = ingredients.map(ingredient => {
+                    const recipeIngredient = recipe.ingredients.find(ri => ri.ingredientId === ingredient.id);
+                    if (recipeIngredient) {
+                        const currentQuantity = ensureNumber(ingredient.quantity, 0);
+                        const usedQuantity = ensureNumber(recipeIngredient.quantity, 0);
+                        return { ...ingredient, quantity: Math.max(0, currentQuantity - usedQuantity) };
+                    }
+                    return ingredient;
+                });
+                saveData();
+                updateIngredientsList();
+            }
+
+            resultContainer.innerHTML = `
+                <h3>Főzés eredménye</h3>
+                <div class="dice-result ${resultClass}">🎲 ${roll} + ${skillBonus} = ${total}</div>
+                <div class="dice-result ${resultClass}">${resultText}</div>
+                <div>Cél nehézség: ${dc}</div>
+                ${success ? `<div style="color: #00ff00;">Buff aktiválva: ${recipe.buff}</div>` : ''}
+            `;
+
+            updateActiveBuffs();
+            saveData();
+        }
+
+        // Buff kezelés
+        function addBuff(playerName, buffName, effect, duration) {
+            const newBuff = {
+                id: Date.now(),
+                player: playerName,
+                name: buffName,
+                effect: effect,
+                duration: ensureNumber(duration, 1),
+                startDay: currentDay
+            };
+
+            activeBuffs.push(newBuff);
+            saveData();
+        }
+
+        function addManualBuff() {
+            const player = document.getElementById('manual-buff-player').value.trim();
+            const name = document.getElementById('manual-buff-name').value.trim();
+            const effect = document.getElementById('manual-buff-effect').value.trim();
+            const duration = ensureNumber(document.getElementById('manual-buff-duration').value, 1);
+
+            if (!player || !name || !effect) {
+                alert('Kérlek töltsd ki az összes mezőt!');
+                return;
+            }
+
+            addBuff(player, name, effect, duration);
+            updateActiveBuffs();
+
+            // Form törlése
+            document.getElementById('manual-buff-player').value = '';
+            document.getElementById('manual-buff-name').value = '';
+            document.getElementById('manual-buff-effect').value = '';
+            document.getElementById('manual-buff-duration').value = '1';
+        }
+
+        function removeBuff(id) {
+            activeBuffs = activeBuffs.filter(buff => buff.id !== id);
+            saveData();
+            updateActiveBuffs();
+        }
+
+        function advanceDay() {
+            currentDay++;
+            
+            // Buff időtartamok csökkentése
+            activeBuffs.forEach(buff => {
+                buff.duration = ensureNumber(buff.duration, 1) - 1;
+            });
+
+            // Lejárt buffok automatikus törlése
+            activeBuffs = activeBuffs.filter(buff => ensureNumber(buff.duration, 0) > 0);
+
+            saveData();
+            updateActiveBuffs();
+            updateCurrentDay();
+        }
+
+        function clearExpiredBuffs() {
+            activeBuffs = activeBuffs.filter(buff => ensureNumber(buff.duration, 0) > 0);
+            saveData();
+            updateActiveBuffs();
+        }
+
+        function clearAllBuffs() {
+            if (confirm('Biztosan törölni szeretnéd az összes buffot?')) {
+                activeBuffs = [];
+                saveData();
+                updateActiveBuffs();
+            }
+        }
+
+        function updateActiveBuffs() {
+            const container = document.getElementById('active-buffs-container');
+            
+            if (activeBuffs.length === 0) {
+                container.innerHTML = '<div style="text-align: center; opacity: 0.6;">Nincsenek aktív buffok</div>';
+                return;
+            }
+
+            // Játékosok szerint csoportosítás
+            const playerBuffs = {};
+            activeBuffs.forEach(buff => {
+                if (!playerBuffs[buff.player]) {
+                    playerBuffs[buff.player] = [];
+                }
+                playerBuffs[buff.player].push(buff);
+            });
+
+            container.innerHTML = Object.entries(playerBuffs).map(([player, buffs]) => `
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: #fff; border-bottom: 1px solid #80b3ff; padding-bottom: 5px;">👥 ${player}</h4>
+                    ${buffs.map(buff => {
+                        const duration = ensureNumber(buff.duration, 0);
+                        return `
+                            <div class="buff-card ${duration <= 0 ? 'buff-expired' : ''}">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <strong>${buff.name}</strong><br>
+                                        <span style="font-size: 0.9em;">${buff.effect}</span><br>
+                                        <span style="font-size: 0.8em; opacity: 0.8;">
+                                            ${duration > 0 ? `${duration} nap hátra` : 'LEJÁRT'}
+                                        </span>
+                                    </div>
+                                    <button onclick="removeBuff(${buff.id})" class="btn-destructive">×</button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `).join('');
+        }
+
+        function updateCurrentDay() {
+            document.getElementById('current-day').textContent = `${currentDay}. nap`;
+        }
+
+        // Inicializálás az oldal betöltésekor
+        window.onload = init;
+    </script>
+</body>
+</html>

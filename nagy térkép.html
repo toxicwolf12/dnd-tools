@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fantasy térkép oldal</title>
+  <link rel="stylesheet" href="style-map.css">
+</head>
+<body>
+  <nav id="nav">
+    <ul>
+      <li><a href="clock.html">time</a>
+      <li><a href="carft/index.html">crafting</a>
+      <li><a href="cooking.html">cooking</a>
+      <li><a href="browing.html">brewing</a>
+    </ul>
+
+
+  </nav>
+
+
+  <div id="container">
+
+    <main id="mainContent">
+      <h1>Azgaar's Fantasy Map</h1>
+      <div id="mapContainer">
+        <!-- Ide illeszd be az Azgaar térképet (SVG vagy kép) -->
+        <iframe src="https://azgaar.github.io/Fantasy-Map-Generator/?maplink=https://dl.dropboxusercontent.com/scl/fi/em9g3mulepmc5pqirgpkg/Lombland-2025-06-17-17-45.map?rlkey=2az9vkk8nzzqlil36d5qtcpd3&dl=0" width="1700" height="700" frameborder="0"></iframe>
+        <!-- Ha van saját SVG-d, itt cseréld ki! -->
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const toggleBtn = document.getElementById("toggleSidebar");
+    const sidebar = document.getElementById("sidebar");
+    const loginForm = document.getElementById("loginForm");
+    const loginErrorDiv = document.getElementById("loginError");
+    const loginArea = document.getElementById("loginArea");
+    const userInfo = document.getElementById("userInfo");
+    const userNameDisplay = document.getElementById("userNameDisplay");
+    const userRoleDisplay = document.getElementById("userRoleDisplay");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    let isSidebarOpen = true;
+    let currentUser = null;
+
+    // Egyszerű teszt felhasználók adatbázisa
+    const usersDB = {
+      admin: { password: "admin123", role: "admin" },
+      player: { password: "player123", role: "player" },
+      guest: { password: "guest", role: "vendég" }
+    };
+
+    toggleBtn.addEventListener("click", () => {
+      isSidebarOpen = !isSidebarOpen;
+      if (isSidebarOpen) {
+        sidebar.classList.remove("collapsed");
+        toggleBtn.textContent = "←";
+        toggleBtn.title = "Oldalsáv becsukása";
+      } else {
+        sidebar.classList.add("collapsed");
+        toggleBtn.textContent = "→";
+        toggleBtn.title = "Oldalsáv kinyitása";
+      }
+    });
+
+    loginForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
+
+      if(usersDB[username] && usersDB[username].password === password) {
+        currentUser = { username: username, role: usersDB[username].role };
+        updateUIOnLogin();
+      } else {
+        loginErrorDiv.textContent = "Hibás felhasználónév vagy jelszó.";
+      }
+    });
+
+    logoutBtn.addEventListener("click", () => {
+      currentUser = null;
+      updateUIOnLogout();
+    });
+
+    function updateUIOnLogin() {
+      loginErrorDiv.textContent = "";
+      loginForm.style.display = "none";
+      userInfo.style.display = "block";
+      userNameDisplay.textContent = `Bejelentkezve: ${currentUser.username}`;
+      userRoleDisplay.textContent = `Szerepkör: ${currentUser.role}`;
+      // Töröljük a mezőket:
+      loginForm.username.value = "";
+      loginForm.password.value = "";
+    }
+
+    function updateUIOnLogout() {
+      loginForm.style.display = "block";
+      userInfo.style.display = "none";
+      loginErrorDiv.textContent = "";
+    }
+  </script>
+</body>
+</html>

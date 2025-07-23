@@ -1,0 +1,194 @@
+ body {
+    background: linear-gradient(to bottom, #1a2238, #364560);
+    color: #e0e6f0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-align: center;
+    margin: 20px;
+    margin-top: 70px;
+    user-select: none;
+  }
+
+    .dmprof{
+        margin:auto 15px;
+
+        float:right;
+
+    }
+
+     nav{
+        position: fixed;
+        top: 0;
+        width: 98%;
+        background-color:#071f4a;
+        padding: 1px;
+        border-radius: 14px;
+    }
+
+    nav ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    nav ul li {
+      margin: 0.5rem 0;
+      display: inline;
+      padding: 20px;
+      font-weight: 900;
+      font-size:20px;
+    }
+    nav ul li a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    nav ul li a:hover {
+      text-decoration: underline;
+    }
+
+
+  #worldTime {
+    font-size: 3.5em;
+    font-weight: 700;
+    color: #f0f5ff;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
+    margin-bottom: 0.1em;
+  }
+
+  #dayCycleCanvas {
+    background: #202a44;
+    border-radius: 50%;
+    box-shadow: 0 0 15px #1e90ff55 inset;
+    margin: 15px auto 10px;
+    display: block;
+  }
+
+  #weatherDisplay {
+    margin-top: 10px;
+    font-size: 1.4em;
+    color: #a9c0ff;
+    text-shadow: 0 0 3px #5078e2;
+  }
+
+  /* DM menü stílusai */
+  #dmPanel {
+    display: none;
+    background: #2b3350;
+    border-radius: 12px;
+    padding: 20px;
+    max-width: 360px;
+    margin: 20px auto;
+
+    box-shadow: 0 0 20px #0a1a38aa;
+  }
+  #dmPanel h3 {
+    margin-top: 0;
+    color: #c8d0ff;
+  }
+  label {
+    display: block;
+    margin: 10px 0 5px;
+    font-weight: 600;
+    color: #d0d8f7;
+  }
+  input[type="datetime-local"],
+  input[type="number"],
+  select {
+    width: 100%;
+    padding: 7px;
+    border-radius: 6px;
+    border: none;
+    font-size: 1em;
+    box-sizing: border-box;
+  }
+  button {
+    margin-top: 12px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    background-color: #5078e2;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  button:hover {
+    background-color: #3659b0;
+  }
+  #dmFeedback {
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: #a9b7ff;
+    min-height: 20px;
+  }
+
+  #dmLoginSection {
+    display:none;
+    max-width: 320px;
+    margin: 20px auto;
+    background: #2b3350;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px #0a1a38aa;
+  }
+
+  #dmLoginSection input[type="password"] {
+    width: 100%;
+    padding: 8px;
+    border-radius: 8px;
+    border: none;
+    font-size: 1em;
+    box-sizing: border-box;
+  }
+  #dmLoginSection button {
+    width: 100%;
+  }
+  #dmLoginError {
+    margin-top: 10px;
+    color: #ff7878;
+    min-height: 20px;
+  }
+
+  /* Színpaletta napszakokhoz */
+  :root {
+    --color-dawn: #ffcf9f;
+    --color-morning: #ffeab3;
+    --color-noon: #a6d8ff;
+    --color-afternoon: #fff3b0;
+    --color-evening: #f5c9b4;
+    --color-night: #2d3a63;
+    --color-midnight: #0d1839;
+
+    /* Időjárás színek */
+    --weather-clear: #ffd75f;
+    --weather-cloudy: #aeb9c7;
+    --weather-rain: #4a90e2;
+    --weather-storm: #324d78;
+    --weather-snow: #d3e1f5;
+  }
+
+  #sidebar{
+    float: left;
+    background-color:#2b3350;
+    min-height: 890px;
+
+    width: 245px;
+  }
+
+  .to-do{
+    background-color:#071f4a;
+    border: 3px double #4a90e2;
+    border-radius: 15px;
+    width: 400px;
+    height: 500px;
+    position: fixed;
+    left: 15px;
+    top: 130px;
+  }
+
+  .to-do input[type="text"] {
+    width: 60%;
+    padding: 8px;
+    border-radius: 8px;
+    border: none;
+    font-size: 1em;
+    box-sizing: border-box;
+  }
